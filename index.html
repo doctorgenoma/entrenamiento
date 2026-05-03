@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="description" content="App de registro de entrenamiento personal" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Mi entrenamiento</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg2: #f7f7f5;
+      --bg3: #f0efe9;
+      --text: #1a1a18;
+      --text2: #6b6b66;
+      --text3: #9b9b96;
+      --border: rgba(0,0,0,0.12);
+      --border2: rgba(0,0,0,0.22);
+      --green: #1D9E75;
+      --green-bg: #E1F5EE;
+      --green-text: #085041;
+      --red-bg: #FCEBEB;
+      --red-text: #A32D2D;
+      --radius: 10px;
+      --radius-lg: 14px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1a;
+        --bg2: #252523;
+        --bg3: #2e2e2b;
+        --text: #f0efe9;
+        --text2: #9b9b96;
+        --text3: #6b6b66;
+        --border: rgba(255,255,255,0.12);
+        --border2: rgba(255,255,255,0.22);
+        --green-bg: #063d2c;
+        --green-text: #5DCAA5;
+        --red-bg: #3a1010;
+        --red-text: #F09595;
+      }
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg3);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      min-height: 100vh;
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--bg);
+      padding: 1rem 1rem 2rem;
+    }
+
+    /* --- Screens --- */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* --- Logo bar --- */
+    .logo-bar {
+      text-align: center;
+      padding: 2rem 0 1.5rem;
+    }
+    .logo-icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--green-bg);
+      margin: 0 auto 14px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-icon svg { stroke: var(--green); stroke-width: 2; fill: none; }
+    .logo-bar h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+    .logo-bar p { font-size: 14px; color: var(--text2); margin-top: 4px; }
+
+    /* --- Cards --- */
+    .card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 12px;
+    }
+
+    /* --- Inputs --- */
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select, textarea {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px 12px;
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius);
+      background: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+      appearance: none;
+      -webkit-appearance: none;
+      outline: none;
+      transition: box-shadow 0.15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      box-shadow: 0 0 0 2px var(--green);
+    }
+    textarea { resize: vertical; min-height: 54px; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b66' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+
+    /* --- Buttons --- */
+    .btn {
+      display: block; width: 100%;
+      font-size: 15px; font-weight: 500;
+      padding: 12px 18px;
+      border-radius: var(--radius);
+      border: 0.5px solid var(--border2);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+      text-align: center;
+      transition: background 0.15s, opacity 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-success { background: var(--green); color: #fff; border-color: var(--green); }
+    .btn-success:hover { opacity: 0.88; }
+    .btn-sm { font-size: 13px; padding: 7px 14px; width: auto; display: inline-block; }
+    .btn-ghost { border-color: transparent; color: var(--text2); background: transparent; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 1rem; align-items: center; }
+
+    /* --- Labels --- */
+    .section-label {
+      font-size: 11px; font-weight: 600;
+      color: var(--text2);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin: 1.25rem 0 0.5rem;
+    }
+    label.field-label {
+      font-size: 12px; color: var(--text2);
+      display: block; margin-bottom: 4px;
+    }
+
+    /* --- Progress bar --- */
+    .progress-wrap { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 1.5rem; }
+    .progress-fill { height: 3px; background: var(--green); border-radius: 2px; transition: width 0.35s ease; }
+
+    /* --- Step indicator --- */
+    .step-row { display: flex; align-items: center; gap: 6px; margin-bottom: 1rem; }
+    .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background 0.2s; }
+    .step-dot.done { background: var(--green); }
+    .step-dot.active { background: var(--text); }
+    .step-text { font-size: 12px; color: var(--text2); margin-left: 4px; }
+
+    /* --- Back button --- */
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 14px; color: var(--text2);
+      cursor: pointer; background: none; border: none;
+      font-family: inherit; padding: 0; margin-bottom: 1rem;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .back-btn:hover { color: var(--text); }
+
+    /* --- Exercise chips --- */
+    .chips-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+    .ex-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 13px;
+      border-radius: 999px;
+      border: 0.5px solid var(--border2);
+      background: var(--bg);
+      cursor: pointer;
+      font-size: 13px; color: var(--text);
+      transition: all 0.15s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ex-chip.selected { background: var(--green-bg); border-color: var(--green); color: var(--green-text); }
+    .chip-check {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 1.5px solid var(--border2); flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .ex-chip.selected .chip-check { background: var(--green); border-color: var(--green); }
+
+    /* --- Exercise entries --- */
+    .ex-entry {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+    .ex-entry-hdr {
+      padding: 12px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ex-entry-hdr:hover { background: var(--bg2); }
+    .ex-entry-hdr:active { background: var(--bg3); }
+    .ex-left { display: flex; align-items: center; gap: 10px; }
+    .ex-name { font-size: 14px; font-weight: 500; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background 0.2s; }
+    .status-dot.ok { background: var(--green); }
+    .chevron { font-size: 16px; color: var(--text3); transition: transform 0.2s; line-height: 1; }
+    .chevron.open { transform: rotate(90deg); }
+    .ex-body {
+      display: none;
+      padding: 10px 14px 14px;
+      border-top: 0.5px solid var(--border);
+    }
+    .ex-body.open { display: block; }
+    .fields-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin-bottom: 8px; }
+
+    /* --- Summary --- */
+    .summary-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 9px 0; border-bottom: 0.5px solid var(--border);
+      font-size: 13px;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .sum-name { font-weight: 500; }
+    .sum-vals { color: var(--text2); font-size: 12px; }
+
+    /* --- Avatar --- */
+    .avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--green-bg); color: var(--green-text);
+      font-size: 18px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* --- History --- */
+    .history-chip {
+      background: var(--bg2);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      border: 0.5px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .history-chip:hover { border-color: var(--border2); }
+    .history-chip strong { font-size: 13px; display: block; }
+    .history-chip span { font-size: 12px; color: var(--text2); }
+
+    /* --- Success icon --- */
+    .success-icon {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: var(--green-bg);
+      margin: 0 auto 1rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .success-icon svg { stroke: var(--green); stroke-width: 2.5; fill: none; }
+
+    /* --- Toast --- */
+    .toast {
+      background: var(--text); color: var(--bg);
+      padding: 10px 16px; border-radius: var(--radius);
+      font-size: 13px; text-align: center;
+      margin-top: 12px; display: none;
+    }
+    .toast.show { display: block; }
+    .toast.err { background: var(--red-bg); color: var(--red-text); border: 0.5px solid var(--red-text); }
+
+    /* --- Name input row --- */
+    .name-wrap { margin: 1.5rem 0; }
+    .name-wrap label.field-label { font-size: 14px; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ======= PANTALLA: LOGIN ======= -->
+  <div class="screen active" id="s-login">
+    <div class="logo-bar">
+      <div class="logo-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <h1>Mi entrenamiento</h1>
+      <p>Registra tu sesión de hoy</p>
+    </div>
+
+    <div class="name-wrap">
+      <label class="field-label" for="client-name">¿Cuál es tu nombre?</label>
+      <input type="text" id="client-name" placeholder="Escribe tu nombre..." autocomplete="given-name" />
+    </div>
+
+    <div id="history-section" style="display:none; margin-bottom:1rem;">
+      <div class="section-label">Tus últimas sesiones</div>
+      <div id="history-list"></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="startSession()">Empezar nueva sesión</button>
+    <div class="toast" id="toast-login"></div>
+  </div>
+
+  <!-- ======= PANTALLA: SELECCIONAR EJERCICIOS ======= -->
+  <div class="screen" id="s-select">
+    <button class="back-btn" onclick="goTo('s-login')">&#8592; Volver</button>
+    <div class="progress-wrap"><div class="progress-fill" style="width:33%"></div></div>
+    <div class="step-row">
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <span class="step-text">Paso 1 de 2 — Elige tus ejercicios</span>
+    </div>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:1rem;">Toca los ejercicios que has hecho hoy.</p>
+    <div id="chips-container"></div>
+    <div class="btn-row">
+      <button class="btn btn-sm" onclick="selectAll()">Seleccionar todos</button>
+      <button class="btn btn-sm btn-ghost" onclick="clearAll()">Limpiar</button>
+      <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="goToRegister()">Continuar ›</button>
+    </div>
+    <div class="toast" id="toast-select"></div>
+  </div>
+
+  <!-- ======= PANTALLA: REGISTRAR DATOS ======= -->
+  <div class="screen" id="s-register">
+    <button class="back-btn" onclick="goTo('s-select')">&#8592; Cambiar ejercicios</button>
+    <div class="progress-wrap"><div class="progress-fill" style="width:66%"></div></div>
+    <div class="step-row">
+      <div class="step-dot done"></div>
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+      <span class="step-text">Paso 2 de 2 — Introduce los datos</span>
+    </div>
+    <div id="register-container"></div>
+    <div style="margin-top:1rem;">
+      <label class="field-label" style="margin-bottom:6px;">Observaciones generales de la sesión</label>
+      <textarea id="obs-general" placeholder="¿Cómo te has sentido? ¿Algo a destacar?"></textarea>
+    </div>
+    <div style="margin-top:1rem;">
+      <button class="btn btn-success" onclick="submitSession()">Enviar sesión ✓</button>
+    </div>
+    <div class="toast" id="toast-register"></div>
+  </div>
+
+  <!-- ======= PANTALLA: CONFIRMACIÓN ======= -->
+  <div class="screen" id="s-confirm">
+    <div style="text-align:center;padding:2rem 0 1.25rem;">
+      <div class="success-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h1 style="font-size:22px;font-weight:600;letter-spacing:-0.3px;margin-bottom:6px;">¡Sesión registrada!</h1>
+      <p id="confirm-sub" style="font-size:14px;color:var(--text2);"></p>
+    </div>
+
+    <div class="card">
+      <div id="confirm-header" style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"></div>
+      <div id="summary-rows"></div>
+      <p id="confirm-obs" style="font-size:12px;color:var(--text2);margin-top:10px;"></p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:1rem;">
+      <button class="btn btn-primary" onclick="newSession()">Nueva sesión</button>
+      <button class="btn" onclick="exportCSV()">Descargar mis datos (CSV)</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const EXERCISES = [
+  {id:'peso-muerto',     nombre:'Peso muerto',              cat:'Piernas'},
+  {id:'sent-bulg',       nombre:'Sentadillas búlgaras',     cat:'Piernas'},
+  {id:'sent-norm',       nombre:'Sentadillas normales',     cat:'Piernas'},
+  {id:'aductores',       nombre:'Aductores',                cat:'Piernas'},
+  {id:'abductores',      nombre:'Abductores',               cat:'Piernas'},
+  {id:'hip-thrusts',     nombre:'Hip thrusts (pelvis)',     cat:'Glúteos'},
+  {id:'press-h-manc',    nombre:'Press hombro (mancuernas)',cat:'Hombros'},
+  {id:'press-h-maq',     nombre:'Press hombro (máquina)',   cat:'Hombros'},
+  {id:'jalones',         nombre:'Jalones en polea',         cat:'Espalda'},
+  {id:'remo-polea',      nombre:'Remo en polea',            cat:'Espalda'},
+  {id:'remo-maq',        nombre:'Remo en máquina',          cat:'Espalda'},
+  {id:'press-banca',     nombre:'Press de banca',           cat:'Pecho'},
+  {id:'press-banca-maq', nombre:'Press banca (máquina)',    cat:'Pecho'},
+  {id:'curl-biceps',     nombre:'Curl de bíceps',           cat:'Brazos'},
+  {id:'triceps',         nombre:'Tríceps',                  cat:'Brazos'},
+  {id:'escap-polea',     nombre:'Escápulas (en polea)',     cat:'Escápulas'},
+  {id:'escap-barra',     nombre:'Escápulas (colgada barra)',cat:'Escápulas'},
+];
+
+let sessions = JSON.parse(localStorage.getItem('pt_sessions') || '[]');
+let clientName = '';
+let selected = new Set();
+let openEntry = null;
+
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function toast(id, msg, err = false) {
+  const t = document.getElementById(id);
+  t.textContent = msg;
+  t.className = 'toast show' + (err ? ' err' : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = 'toast', 3000);
+}
+
+function initials(n) {
+  return n.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+/* ---- LOGIN ---- */
+function startSession() {
+  clientName = document.getElementById('client-name').value.trim();
+  if (!clientName) { toast('toast-login', 'Por favor escribe tu nombre', true); return; }
+  renderHistory();
+  renderChips();
+  goTo('s-select');
+}
+
+function renderHistory() {
+  const mine = sessions.filter(s => s.cliente === clientName);
+  const sec = document.getElementById('history-section');
+  if (!mine.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  document.getElementById('history-list').innerHTML = mine.slice(0, 3).map(s => `
+    <div class="history-chip">
+      <strong>${s.fecha}</strong>
+      <span>${s.ejercicios.length} ejercicios · ${s.tipo || 'Entrenamiento'}</span>
+    </div>
+  `).join('');
+}
+
+/* ---- CHIP SELECTION ---- */
+function renderChips() {
+  const cats = [...new Set(EXERCISES.map(e => e.cat))];
+  let html = '';
+  cats.forEach(cat => {
+    html += `<div class="section-label">${cat}</div><div class="chips-wrap">`;
+    EXERCISES.filter(e => e.cat === cat).forEach(ex => {
+      const sel = selected.has(ex.id);
+      html += `<div class="ex-chip${sel ? ' selected' : ''}" id="chip-${ex.id}" onclick="toggleChip('${ex.id}')">
+        <span class="chip-check"></span>${ex.nombre}
+      </div>`;
+    });
+    html += '</div>';
+  });
+  document.getElementById('chips-container').innerHTML = html;
+}
+
+function toggleChip(id) {
+  selected.has(id) ? selected.delete(id) : selected.add(id);
+  const chip = document.getElementById('chip-' + id);
+  chip.classList.toggle('selected', selected.has(id));
+}
+function selectAll() { EXERCISES.forEach(e => selected.add(e.id)); renderChips(); }
+function clearAll()  { selected.clear(); renderChips(); }
+
+/* ---- REGISTER ---- */
+function goToRegister() {
+  if (!selected.size) { toast('toast-select', 'Selecciona al menos un ejercicio', true); return; }
+  renderEntries();
+  goTo('s-register');
+}
+
+function renderEntries() {
+  const sel = EXERCISES.filter(e => selected.has(e.id));
+  const cats = [...new Set(sel.map(e => e.cat))];
+  let html = '';
+  cats.forEach(cat => {
+    html += `<div class="section-label">${cat}</div>`;
+    sel.filter(e => e.cat === cat).forEach(ex => {
+      html += `
+      <div class="ex-entry">
+        <div class="ex-entry-hdr" onclick="toggleEntry('${ex.id}')">
+          <div class="ex-left">
+            <div class="status-dot" id="dot-${ex.id}"></div>
+            <span class="ex-name">${ex.nombre}</span>
+          </div>
+          <span class="chevron" id="chev-${ex.id}">›</span>
+        </div>
+        <div class="ex-body" id="body-${ex.id}">
+          <div class="fields-3">
+            <div>
+              <label class="field-label">Peso (kg)</label>
+              <input type="number" id="p-${ex.id}" placeholder="0" min="0" step="0.5" inputmode="decimal" onchange="checkDot('${ex.id}')" oninput="checkDot('${ex.id}')" />
+            </div>
+            <div>
+              <label class="field-label">Series</label>
+              <input type="number" id="s-${ex.id}" placeholder="0" min="0" inputmode="numeric" onchange="checkDot('${ex.id}')" oninput="checkDot('${ex.id}')" />
+            </div>
+            <div>
+              <label class="field-label">Repeticiones</label>
+              <input type="number" id="r-${ex.id}" placeholder="0" min="0" inputmode="numeric" onchange="checkDot('${ex.id}')" oninput="checkDot('${ex.id}')" />
+            </div>
+          </div>
+          <div>
+            <label class="field-label">Observaciones</label>
+            <textarea id="o-${ex.id}" placeholder="Sensaciones, dificultad, notas..." oninput="checkDot('${ex.id}')"></textarea>
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+  document.getElementById('register-container').innerHTML = html;
+  openEntry = null;
+  if (sel.length) toggleEntry(sel[0].id);
+}
+
+function toggleEntry(id) {
+  if (openEntry && openEntry !== id) {
+    document.getElementById('body-' + openEntry)?.classList.remove('open');
+    document.getElementById('chev-' + openEntry)?.classList.remove('open');
+  }
+  openEntry = id;
+  document.getElementById('body-' + id)?.classList.toggle('open');
+  document.getElementById('chev-' + id)?.classList.toggle('open');
+}
+
+function checkDot(id) {
+  const filled = ['p','s','r','o'].some(f => document.getElementById(f+'-'+id)?.value?.trim());
+  const dot = document.getElementById('dot-' + id);
+  if (dot) dot.className = 'status-dot' + (filled ? ' ok' : '');
+}
+
+function getData(id) {
+  return {
+    peso:   document.getElementById('p-'+id)?.value || '',
+    series: document.getElementById('s-'+id)?.value || '',
+    reps:   document.getElementById('r-'+id)?.value || '',
+    obs:    document.getElementById('o-'+id)?.value || ''
+  };
+}
+
+/* ---- SUBMIT ---- */
+function submitSession() {
+  const sel = EXERCISES.filter(e => selected.has(e.id));
+  const ejercicios = sel.map(ex => ({ ...ex, ...getData(ex.id) }));
+  const fecha = new Date().toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const session = {
+    id: Date.now().toString(36),
+    cliente: clientName,
+    fecha,
+    tipo: 'Entrenamiento',
+    obsGeneral: document.getElementById('obs-general').value.trim(),
+    ejercicios,
+    createdAt: Date.now()
+  };
+  sessions.unshift(session);
+  try { localStorage.setItem('pt_sessions', JSON.stringify(sessions)); } catch(e) {}
+  renderConfirm(session);
+  goTo('s-confirm');
+}
+
+/* ---- CONFIRM ---- */
+function renderConfirm(s) {
+  document.getElementById('confirm-sub').textContent =
+    `${s.fecha} · ${s.cliente} · ${s.ejercicios.length} ejercicios`;
+
+  document.getElementById('confirm-header').innerHTML = `
+    <div class="avatar">${initials(s.cliente)}</div>
+    <div>
+      <p style="font-weight:600;font-size:15px;">${s.cliente}</p>
+      <p style="font-size:12px;color:var(--text2);">${s.fecha}</p>
+    </div>`;
+
+  const filled = s.ejercicios.filter(e => e.peso || e.series || e.reps || e.obs);
+  document.getElementById('summary-rows').innerHTML = filled.map(e => {
+    const parts = [];
+    if (e.peso)   parts.push(e.peso + ' kg');
+    if (e.series) parts.push(e.series + ' series');
+    if (e.reps)   parts.push(e.reps + ' reps');
+    return `<div class="summary-row">
+      <span class="sum-name">${e.nombre}</span>
+      <span class="sum-vals">${parts.join(' · ') || '—'}</span>
+    </div>`;
+  }).join('');
+
+  const obs = document.getElementById('confirm-obs');
+  obs.textContent = s.obsGeneral || '';
+  obs.style.display = s.obsGeneral ? 'block' : 'none';
+}
+
+function newSession() {
+  selected.clear();
+  openEntry = null;
+  document.getElementById('obs-general').value = '';
+  renderHistory();
+  goTo('s-login');
+}
+
+/* ---- CSV EXPORT ---- */
+function exportCSV() {
+  const mine = sessions.filter(s => s.cliente === clientName);
+  if (!mine.length) return;
+  const rows = [['Fecha','Cliente','Ejercicio','Categoría','Peso (kg)','Series','Repeticiones','Observaciones','Obs. general']];
+  mine.forEach(s => s.ejercicios.forEach(e => {
+    rows.push([s.fecha, s.cliente, e.nombre, e.cat, e.peso, e.series, e.reps, e.obs, s.obsGeneral]
+      .map(v => `"${(v||'').toString().replace(/"/g,'""')}"`));
+  }));
+  const csv = '\uFEFF' + rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `entrenamiento_${clientName.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ---- Init ---- */
+document.getElementById('client-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startSession();
+});
+</script>
+</body>
+</html>
