@@ -33,36 +33,30 @@
     }
 
     html, body {
-      min-height: 100%; background: var(--bg);
-      font-family: var(--font); color: var(--text);
-      -webkit-font-smoothing: antialiased;
+      min-height:100%; background:var(--bg);
+      font-family:var(--font); color:var(--text);
+      -webkit-font-smoothing:antialiased;
     }
-
     .app {
-      min-height: 100vh; max-width: 480px;
-      margin: 0 auto; background: var(--surface);
-      padding: 1rem 1rem 3rem;
-      box-shadow: var(--shadow);
+      min-height:100vh; max-width:480px;
+      margin:0 auto; background:var(--surface);
+      padding:1rem 1rem 3rem; box-shadow:var(--shadow);
     }
 
-    /* Screens */
-    .screen { display: none; animation: fadeIn 0.2s ease; }
-    .screen.active { display: block; }
-    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+    .screen { display:none; animation:fadeIn 0.2s ease; }
+    .screen.active { display:block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
 
-    /* Logo */
     .logo-bar { text-align:center; padding:2rem 0 1.75rem; }
     .logo-icon {
-      width:60px; height:60px; border-radius:50%;
-      background:var(--green); margin:0 auto 16px;
-      display:flex; align-items:center; justify-content:center;
-      box-shadow: 0 4px 16px rgba(26,122,88,0.30);
+      width:60px; height:60px; border-radius:50%; background:var(--green);
+      margin:0 auto 16px; display:flex; align-items:center; justify-content:center;
+      box-shadow:0 4px 16px rgba(26,122,88,0.30);
     }
     .logo-icon svg { stroke:#fff; stroke-width:2; fill:none; }
     .logo-bar h1 { font-size:24px; font-weight:600; letter-spacing:-0.5px; }
     .logo-bar p  { font-size:14px; color:var(--text2); margin-top:4px; }
 
-    /* Inputs */
     input, select, textarea {
       width:100%; font-size:16px; padding:11px 13px;
       border:1.5px solid var(--border2); border-radius:var(--radius);
@@ -75,7 +69,6 @@
     }
     textarea { resize:vertical; min-height:56px; }
 
-    /* Buttons */
     .btn {
       display:block; width:100%; font-size:15px; font-weight:500;
       padding:12px 18px; border-radius:var(--radius);
@@ -89,29 +82,25 @@
     .btn-primary:hover { opacity:0.85; }
     .btn-green { background:var(--green); color:#fff; border-color:var(--green); box-shadow:0 3px 10px rgba(26,122,88,0.25); }
     .btn-green:hover { opacity:0.88; }
-    .btn-sm { font-size:13px; padding:7px 14px; width:auto; display:inline-block; }
-    .btn-ghost { border-color:transparent; color:var(--text2); }
-    .btn-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:1rem; align-items:center; }
+    .btn-sm   { font-size:13px; padding:7px 14px; width:auto; display:inline-block; }
+    .btn-ghost{ border-color:transparent; color:var(--text2); }
+    .btn-row  { display:flex; gap:8px; flex-wrap:wrap; margin-top:1rem; align-items:center; }
 
-    /* Labels */
     .section-label {
       font-size:11px; font-weight:600; color:var(--text2);
       letter-spacing:0.08em; text-transform:uppercase; margin:1.25rem 0 0.5rem;
     }
     .field-label { font-size:13px; color:var(--text2); display:block; margin-bottom:5px; }
 
-    /* Progress */
     .progress-wrap { height:3px; background:var(--bg2); border-radius:2px; margin-bottom:1.5rem; }
     .progress-fill { height:3px; background:var(--green); border-radius:2px; transition:width 0.35s ease; }
 
-    /* Steps */
     .step-row { display:flex; align-items:center; gap:6px; margin-bottom:1rem; }
     .step-dot { width:8px; height:8px; border-radius:50%; background:var(--bg3); flex-shrink:0; transition:background 0.2s; }
-    .step-dot.done { background:var(--green); }
+    .step-dot.done   { background:var(--green); }
     .step-dot.active { background:var(--text); }
     .step-text { font-size:12px; color:var(--text2); margin-left:4px; }
 
-    /* Back */
     .back-btn {
       display:flex; align-items:center; gap:6px; font-size:14px; color:var(--text2);
       cursor:pointer; background:none; border:none; font-family:var(--font);
@@ -119,15 +108,12 @@
     }
     .back-btn:hover { color:var(--text); }
 
-    /* Chips */
     .chips-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px; }
     .ex-chip {
-      display:inline-flex; align-items:center; gap:6px;
-      padding:7px 13px; border-radius:999px;
-      border:1.5px solid var(--border2); background:var(--surface);
+      display:inline-flex; align-items:center; gap:6px; padding:7px 13px;
+      border-radius:999px; border:1.5px solid var(--border2); background:var(--surface);
       cursor:pointer; font-size:13px; color:var(--text);
-      transition:all 0.15s; user-select:none;
-      -webkit-tap-highlight-color:transparent;
+      transition:all 0.15s; user-select:none; -webkit-tap-highlight-color:transparent;
     }
     .ex-chip.selected { background:var(--green-lt); border-color:var(--green); color:var(--green-tx); }
     .chip-check {
@@ -136,13 +122,11 @@
     }
     .ex-chip.selected .chip-check { background:var(--green); border-color:var(--green); }
 
-    /* Exercise entries */
     .ex-entry {
       background:var(--surface); border:1.5px solid var(--border);
       border-radius:var(--radius-lg); margin-bottom:8px; overflow:hidden;
       transition:border-color 0.15s;
     }
-    .ex-entry:has(.ex-body.open) { border-color:var(--green); }
     .ex-entry-hdr {
       padding:13px 14px; display:flex; align-items:center; justify-content:space-between;
       cursor:pointer; -webkit-tap-highlight-color:transparent;
@@ -158,7 +142,6 @@
     .ex-body.open { display:block; }
     .fields-3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:8px; }
 
-    /* Summary */
     .summary-row {
       display:flex; justify-content:space-between; align-items:baseline;
       padding:9px 0; border-bottom:1px solid var(--border); font-size:13px;
@@ -167,15 +150,12 @@
     .sum-name { font-weight:500; }
     .sum-vals { color:var(--text2); font-size:12px; font-family:var(--mono); }
 
-    /* Avatar */
     .avatar {
       width:48px; height:48px; border-radius:50%;
-      background:var(--green); color:#fff;
-      font-size:16px; font-weight:600;
+      background:var(--green); color:#fff; font-size:16px; font-weight:600;
       display:flex; align-items:center; justify-content:center; flex-shrink:0;
     }
 
-    /* History */
     .history-card {
       background:var(--bg); border:1.5px solid var(--border);
       border-radius:var(--radius-lg); margin-bottom:8px; overflow:hidden;
@@ -187,40 +167,41 @@
     .history-card-hdr:hover { background:var(--bg2); }
     .history-card-body { display:none; padding:0 14px 12px; }
     .history-card-body.open { display:block; }
-    .history-ex-row { font-size:12px; padding:5px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; }
+    .history-ex-row {
+      font-size:12px; padding:5px 0; border-bottom:1px solid var(--border);
+      display:flex; justify-content:space-between;
+    }
     .history-ex-row:last-child { border-bottom:none; }
 
-    /* Status banner */
     .status-banner {
       padding:10px 14px; border-radius:var(--radius); font-size:13px;
       margin-bottom:12px; display:none; text-align:center; font-weight:500;
     }
-    .status-banner.show { display:block; }
+    .status-banner.show    { display:block; }
     .status-banner.loading { background:var(--bg2); color:var(--text2); }
-    .status-banner.ok   { background:var(--green-lt); color:var(--green-tx); }
-    .status-banner.err  { background:var(--accent-lt); color:var(--accent); }
+    .status-banner.ok      { background:var(--green-lt); color:var(--green-tx); }
+    .status-banner.err     { background:var(--accent-lt); color:var(--accent); }
 
-    /* Success */
     .success-icon {
       width:64px; height:64px; border-radius:50%; background:var(--green);
-      margin:0 auto 1rem;
-      display:flex; align-items:center; justify-content:center;
+      margin:0 auto 1rem; display:flex; align-items:center; justify-content:center;
       box-shadow:0 6px 20px rgba(26,122,88,0.30);
     }
     .success-icon svg { stroke:#fff; stroke-width:2.5; fill:none; }
 
-    /* Card */
-    .card { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius-lg); padding:1rem 1.25rem; margin-bottom:12px; }
+    .card {
+      background:var(--surface); border:1.5px solid var(--border);
+      border-radius:var(--radius-lg); padding:1rem 1.25rem; margin-bottom:12px;
+    }
 
-    /* Spinner */
     .spinner {
       display:inline-block; width:14px; height:14px;
       border:2px solid var(--border2); border-top-color:var(--green);
-      border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:6px;
+      border-radius:50%; animation:spin 0.7s linear infinite;
+      vertical-align:middle; margin-right:6px;
     }
-    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes spin { to{transform:rotate(360deg)} }
 
-    /* Tabs */
     .tabs { display:flex; border-bottom:1.5px solid var(--border); margin-bottom:1.25rem; }
     .tab-btn {
       flex:1; font-size:13px; font-weight:500; padding:10px 8px;
@@ -236,32 +217,33 @@
 <body>
 <div class="app">
 
-  <!-- ── CONFIG: pega aquí tu URL de Apps Script ── -->
   <script>
-    // ⚠️ IMPORTANTE: sustituye esta URL por la tuya tras desplegar el Apps Script
+    // ⚠️ PEGA AQUÍ TU URL DE APPS SCRIPT
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTzQGu1Pz92xB7c2-eksIhWj7gLSMvyoZabNiTFqCUrNVvwpOsmyuC8rsH-2eQZFrZTw/exec";
   </script>
 
-  <!-- ===== PANTALLA: LOGIN ===== -->
+  <!-- ===== LOGIN ===== -->
   <div class="screen active" id="s-login">
     <div class="logo-bar">
       <div class="logo-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        <svg width="28" height="28" viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
       </div>
       <h1>Mi entrenamiento</h1>
       <p>Registra tu sesión de hoy</p>
     </div>
-
     <div style="margin-bottom:1.25rem;">
       <label class="field-label" for="client-name">¿Cuál es tu nombre?</label>
       <input type="text" id="client-name" placeholder="Escribe tu nombre..." autocomplete="given-name" />
     </div>
-
     <button class="btn btn-primary" onclick="loginCliente()">Entrar</button>
     <div class="status-banner" id="banner-login"></div>
   </div>
 
-  <!-- ===== PANTALLA: PANEL CLIENTE ===== -->
+  <!-- ===== PANEL CLIENTE ===== -->
   <div class="screen" id="s-panel">
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
@@ -276,37 +258,32 @@
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="showTab('nueva')" id="tab-nueva">Nueva sesión</button>
-      <button class="tab-btn" onclick="showTab('historial')" id="tab-historial">Mi historial</button>
+      <button class="tab-btn active" onclick="showTab('nueva')"    id="tab-nueva">Nueva sesión</button>
+      <button class="tab-btn"        onclick="showTab('historial')" id="tab-historial">Mi historial</button>
     </div>
 
     <!-- TAB: NUEVA SESIÓN -->
     <div class="tab-pane active" id="pane-nueva">
-
-      <!-- Paso 1: elegir ejercicios -->
       <div id="paso-1">
         <div class="progress-wrap"><div class="progress-fill" style="width:50%"></div></div>
         <div class="step-row">
-          <div class="step-dot active"></div>
-          <div class="step-dot"></div>
+          <div class="step-dot active"></div><div class="step-dot"></div>
           <span class="step-text">Paso 1 — Elige los ejercicios de hoy</span>
         </div>
         <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Toca los que has hecho en esta sesión.</p>
         <div id="chips-container"></div>
         <div class="btn-row">
-          <button class="btn btn-sm" onclick="selectAll()">Todos</button>
+          <button class="btn btn-sm"       onclick="selectAll()">Todos</button>
           <button class="btn btn-sm btn-ghost" onclick="clearAll()">Limpiar</button>
           <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="goToRegister()">Continuar ›</button>
         </div>
         <div class="status-banner" id="banner-chips"></div>
       </div>
 
-      <!-- Paso 2: registrar datos -->
       <div id="paso-2" style="display:none;">
         <div class="progress-wrap"><div class="progress-fill" style="width:100%"></div></div>
         <div class="step-row">
-          <div class="step-dot done"></div>
-          <div class="step-dot active"></div>
+          <div class="step-dot done"></div><div class="step-dot active"></div>
           <span class="step-text">Paso 2 — Introduce los datos</span>
         </div>
         <div id="register-container"></div>
@@ -315,12 +292,11 @@
           <textarea id="obs-general" placeholder="¿Cómo te has sentido hoy?"></textarea>
         </div>
         <div style="margin-top:1rem;display:flex;gap:8px;">
-          <button class="btn btn-sm btn-ghost" onclick="volverPaso1()">‹ Cambiar ejercicios</button>
+          <button class="btn btn-sm btn-ghost" onclick="volverPaso1()">‹ Volver</button>
           <button class="btn btn-green" style="flex:1;" onclick="submitSession()">Enviar sesión ✓</button>
         </div>
         <div class="status-banner" id="banner-submit"></div>
       </div>
-
     </div>
 
     <!-- TAB: HISTORIAL -->
@@ -330,10 +306,9 @@
         <p style="font-size:13px;color:var(--text2);">Cargando tu historial...</p>
       </div>
     </div>
-
   </div>
 
-  <!-- ===== PANTALLA: CONFIRMACIÓN ===== -->
+  <!-- ===== CONFIRMACIÓN ===== -->
   <div class="screen" id="s-confirm">
     <div style="text-align:center;padding:2rem 0 1.5rem;">
       <div class="success-icon">
@@ -349,16 +324,14 @@
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:1rem;">
       <button class="btn btn-primary" onclick="nuevaSesion()">Nueva sesión</button>
-      <button class="btn" onclick="verHistorial()">Ver mi historial</button>
+      <button class="btn"             onclick="verHistorial()">Ver mi historial</button>
     </div>
   </div>
 
 </div><!-- /app -->
 
 <script>
-// ──────────────────────────────────────────────
-// EJERCICIOS
-// ──────────────────────────────────────────────
+// ── EJERCICIOS ──────────────────────────────────────────────
 const EXERCISES = [
   {id:'peso-muerto',     nombre:'Peso muerto',               cat:'Piernas'},
   {id:'sent-bulg',       nombre:'Sentadillas búlgaras',      cat:'Piernas'},
@@ -379,17 +352,13 @@ const EXERCISES = [
   {id:'escap-barra',     nombre:'Escápulas (colgada barra)', cat:'Escápulas'},
 ];
 
-// ──────────────────────────────────────────────
-// ESTADO
-// ──────────────────────────────────────────────
+// ── ESTADO ──────────────────────────────────────────────────
 let clientName = '';
 let selected   = new Set();
 let openEntry  = null;
 let openHCard  = null;
 
-// ──────────────────────────────────────────────
-// NAVEGACIÓN
-// ──────────────────────────────────────────────
+// ── UTILIDADES ──────────────────────────────────────────────
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -399,27 +368,28 @@ function goTo(id) {
 function showTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-  document.getElementById('tab-'   + name).classList.add('active');
-  document.getElementById('pane-'  + name).classList.add('active');
+  document.getElementById('tab-'  + name).classList.add('active');
+  document.getElementById('pane-' + name).classList.add('active');
   if (name === 'historial') cargarHistorial();
 }
 
 function banner(id, msg, type='loading') {
   const el = document.getElementById(id);
-  el.innerHTML = type === 'loading'
-    ? `<span class="spinner"></span>${msg}`
-    : msg;
+  el.innerHTML = type === 'loading' ? `<span class="spinner"></span>${msg}` : msg;
   el.className = `status-banner show ${type}`;
-  if (type !== 'loading') setTimeout(() => el.classList.remove('show'), 4000);
+  if (type !== 'loading') setTimeout(() => el.classList.remove('show'), 5000);
 }
 function hideBanner(id) { document.getElementById(id).classList.remove('show'); }
 
 function initials(n) { return n.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
-function genId()      { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function genId()      { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
-// ──────────────────────────────────────────────
-// LOGIN
-// ──────────────────────────────────────────────
+// Codifica un objeto en base64 para enviarlo como parámetro GET
+function toBase64(obj) {
+  return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+}
+
+// ── LOGIN ────────────────────────────────────────────────────
 function loginCliente() {
   const val = document.getElementById('client-name').value.trim();
   if (!val) { banner('banner-login','Por favor escribe tu nombre','err'); return; }
@@ -431,20 +401,16 @@ function loginCliente() {
   showTab('nueva');
   goTo('s-panel');
 }
-
 function logout() {
   clientName = '';
   document.getElementById('client-name').value = '';
   goTo('s-login');
 }
-
 document.getElementById('client-name').addEventListener('keydown', e => {
   if (e.key === 'Enter') loginCliente();
 });
 
-// ──────────────────────────────────────────────
-// PASO 1: CHIPS
-// ──────────────────────────────────────────────
+// ── PASO 1: CHIPS ────────────────────────────────────────────
 function renderChips() {
   const cats = [...new Set(EXERCISES.map(e => e.cat))];
   let html = '';
@@ -459,18 +425,14 @@ function renderChips() {
   });
   document.getElementById('chips-container').innerHTML = html;
 }
-
 function toggleChip(id) {
   selected.has(id) ? selected.delete(id) : selected.add(id);
-  const chip = document.getElementById('chip-'+id);
-  chip.classList.toggle('selected', selected.has(id));
+  document.getElementById('chip-'+id).classList.toggle('selected', selected.has(id));
 }
 function selectAll() { EXERCISES.forEach(e => selected.add(e.id)); renderChips(); }
 function clearAll()  { selected.clear(); renderChips(); }
 
-// ──────────────────────────────────────────────
-// PASO 2: REGISTRO
-// ──────────────────────────────────────────────
+// ── PASO 2: REGISTRO ─────────────────────────────────────────
 function goToRegister() {
   if (!selected.size) { banner('banner-chips','Selecciona al menos un ejercicio','err'); return; }
   hideBanner('banner-chips');
@@ -479,7 +441,6 @@ function goToRegister() {
   document.getElementById('paso-2').style.display = 'block';
   window.scrollTo(0,0);
 }
-
 function volverPaso1() {
   document.getElementById('paso-2').style.display = 'none';
   document.getElementById('paso-1').style.display = 'block';
@@ -504,25 +465,22 @@ function renderEntries() {
         <div class="ex-body" id="body-${ex.id}">
           <div class="fields-3">
             <div><label class="field-label">Peso (kg)</label>
-              <input type="number" id="p-${ex.id}" placeholder="0" min="0" step="0.5" inputmode="decimal"
-                oninput="checkDot('${ex.id}')"/></div>
+              <input type="number" id="p-${ex.id}" placeholder="0" min="0" step="0.5" inputmode="decimal" oninput="checkDot('${ex.id}')"/></div>
             <div><label class="field-label">Series</label>
-              <input type="number" id="s-${ex.id}" placeholder="0" min="0" inputmode="numeric"
-                oninput="checkDot('${ex.id}')"/></div>
+              <input type="number" id="s-${ex.id}" placeholder="0" min="0" inputmode="numeric" oninput="checkDot('${ex.id}')"/></div>
             <div><label class="field-label">Reps</label>
-              <input type="number" id="r-${ex.id}" placeholder="0" min="0" inputmode="numeric"
-                oninput="checkDot('${ex.id}')"/></div>
+              <input type="number" id="r-${ex.id}" placeholder="0" min="0" inputmode="numeric" oninput="checkDot('${ex.id}')"/></div>
           </div>
           <div><label class="field-label">Observaciones</label>
-            <textarea id="o-${ex.id}" placeholder="Sensaciones, dificultad..."
-              oninput="checkDot('${ex.id}')"></textarea></div>
+            <textarea id="o-${ex.id}" placeholder="Sensaciones, dificultad..." oninput="checkDot('${ex.id}')"></textarea></div>
         </div>
       </div>`;
     });
   });
   document.getElementById('register-container').innerHTML = html;
   openEntry = null;
-  if (sel.length) toggleEntry(sel[0].id);
+  const first = EXERCISES.find(e => selected.has(e.id));
+  if (first) toggleEntry(first.id);
 }
 
 function toggleEntry(id) {
@@ -534,13 +492,11 @@ function toggleEntry(id) {
   document.getElementById('body-'+id)?.classList.toggle('open');
   document.getElementById('chev-'+id)?.classList.toggle('open');
 }
-
 function checkDot(id) {
   const filled = ['p','s','r','o'].some(f => document.getElementById(f+'-'+id)?.value?.trim());
   const dot = document.getElementById('dot-'+id);
   if (dot) dot.className = 'status-dot' + (filled ? ' ok' : '');
 }
-
 function getData(id) {
   return {
     peso:   document.getElementById('p-'+id)?.value || '',
@@ -550,9 +506,7 @@ function getData(id) {
   };
 }
 
-// ──────────────────────────────────────────────
-// ENVÍO — guarda en Sheets y localmente
-// ──────────────────────────────────────────────
+// ── ENVÍO ────────────────────────────────────────────────────
 async function submitSession() {
   const sel = EXERCISES.filter(e => selected.has(e.id));
   const ejercicios = sel.map(ex => ({ ...ex, ...getData(ex.id) }));
@@ -568,68 +522,55 @@ async function submitSession() {
     createdAt:  Date.now()
   };
 
-  // Guardar localmente siempre (por si falla la red)
+  // Guardar siempre en local como respaldo
   guardarLocal(session);
 
-  // Enviar a Google Sheets
-  banner('banner-submit', 'Guardando sesión...', 'loading');
-
-  if (SCRIPT_URL === 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
-    // Sin URL configurada: solo local
-    hideBanner('banner-submit');
-    mostrarConfirmacion(session);
-    return;
-  }
-
-  try {
-    const resp = await fetch(SCRIPT_URL, {
-      method:  'POST',
-      headers: {'Content-Type':'application/json'},
-      body:    JSON.stringify({ action:'guardar', session })
-    });
-    const data = await resp.json();
-    if (data.ok) {
-      hideBanner('banner-submit');
-    } else {
-      banner('banner-submit', '⚠️ Guardado localmente. Sin conexión con Sheets.', 'err');
+  // Enviar a Google Sheets via GET + base64
+  if (SCRIPT_URL && SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
+    banner('banner-submit','Guardando en Google Sheets...','loading');
+    try {
+      const encoded = toBase64(session);
+      const url = `${SCRIPT_URL}?action=guardar&data=${encodeURIComponent(encoded)}`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+      if (data.ok) {
+        hideBanner('banner-submit');
+      } else {
+        banner('banner-submit', `⚠️ Error en Sheets: ${data.error || 'desconocido'}`, 'err');
+      }
+    } catch(e) {
+      banner('banner-submit','⚠️ Sin conexión. Datos guardados en el dispositivo.','err');
     }
-  } catch(e) {
-    banner('banner-submit', '⚠️ Sin conexión. Datos guardados en el dispositivo.', 'err');
   }
 
   mostrarConfirmacion(session);
 }
 
-// ──────────────────────────────────────────────
-// LOCAL STORAGE (respaldo)
-// ──────────────────────────────────────────────
+// ── LOCAL STORAGE ─────────────────────────────────────────────
 function guardarLocal(session) {
-  const key = 'pt_sessions_' + clientName;
+  const key = 'pt_' + clientName;
   const arr = JSON.parse(localStorage.getItem(key) || '[]');
   arr.unshift(session);
   try { localStorage.setItem(key, JSON.stringify(arr.slice(0,50))); } catch(e) {}
 }
-
 function getLocal() {
-  const key = 'pt_sessions_' + clientName;
-  return JSON.parse(localStorage.getItem(key) || '[]');
+  return JSON.parse(localStorage.getItem('pt_' + clientName) || '[]');
 }
 
-// ──────────────────────────────────────────────
-// CONFIRMACIÓN
-// ──────────────────────────────────────────────
+// ── CONFIRMACIÓN ──────────────────────────────────────────────
 function mostrarConfirmacion(s) {
-  const filled = s.ejercicios.filter(e => e.peso || e.series || e.reps || e.obs);
-  document.getElementById('confirm-sub').textContent = `${s.fecha} · ${s.cliente} · ${filled.length} ejercicios`;
+  const filled = s.ejercicios.filter(e => e.peso||e.series||e.reps||e.obs);
+  document.getElementById('confirm-sub').textContent =
+    `${s.fecha} · ${s.cliente} · ${filled.length} ejercicios`;
   document.getElementById('confirm-header').innerHTML = `
     <div class="avatar">${initials(s.cliente)}</div>
     <div><p style="font-weight:600;font-size:15px;">${s.cliente}</p>
          <p style="font-size:12px;color:var(--text2);">${s.fecha}</p></div>`;
   document.getElementById('summary-rows').innerHTML = filled.map(e => {
-    const parts = [];
-    if (e.peso)   parts.push(e.peso+' kg');
-    if (e.series) parts.push(e.series+' series');
-    if (e.reps)   parts.push(e.reps+' reps');
+    const parts=[];
+    if(e.peso)   parts.push(e.peso+' kg');
+    if(e.series) parts.push(e.series+' series');
+    if(e.reps)   parts.push(e.reps+' reps');
     return `<div class="summary-row">
       <span class="sum-name">${e.nombre}</span>
       <span class="sum-vals">${parts.join(' · ')||'—'}</span></div>`;
@@ -641,31 +582,21 @@ function mostrarConfirmacion(s) {
 }
 
 function nuevaSesion() {
-  selected.clear();
-  openEntry = null;
+  selected.clear(); openEntry = null;
   document.getElementById('obs-general').value = '';
   document.getElementById('paso-2').style.display = 'none';
   document.getElementById('paso-1').style.display = 'block';
-  renderChips();
-  showTab('nueva');
-  goTo('s-panel');
+  renderChips(); showTab('nueva'); goTo('s-panel');
 }
+function verHistorial() { showTab('historial'); goTo('s-panel'); }
 
-function verHistorial() {
-  showTab('historial');
-  goTo('s-panel');
-}
-
-// ──────────────────────────────────────────────
-// HISTORIAL
-// ──────────────────────────────────────────────
+// ── HISTORIAL ─────────────────────────────────────────────────
 async function cargarHistorial() {
   const cont = document.getElementById('historial-container');
   banner('banner-historial','Cargando tu historial...','loading');
   cont.innerHTML = '';
 
-  // Intentar cargar desde Sheets
-  if (SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
+  if (SCRIPT_URL && SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
     try {
       const url = `${SCRIPT_URL}?action=historial&cliente=${encodeURIComponent(clientName)}`;
       const resp = await fetch(url);
@@ -675,10 +606,9 @@ async function cargarHistorial() {
         renderHistorial(data.sesiones, 'Google Sheets');
         return;
       }
-    } catch(e) { /* fallback a local */ }
+    } catch(e) { /* fallback */ }
   }
 
-  // Fallback: datos locales
   const local = getLocal();
   hideBanner('banner-historial');
   if (!local.length) {
@@ -690,8 +620,9 @@ async function cargarHistorial() {
 
 function renderHistorial(sesiones, fuente) {
   const cont = document.getElementById('historial-container');
+  const totalEj = sesiones.reduce((acc,s) =>
+    acc + (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs).length, 0);
 
-  const stats = calcularStats(sesiones);
   cont.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem;">
       <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;">
@@ -700,16 +631,16 @@ function renderHistorial(sesiones, fuente) {
       </div>
       <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;">
         <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;">Ejercicios</div>
-        <div style="font-size:22px;font-weight:600;margin-top:2px;">${stats.totalEj}</div>
+        <div style="font-size:22px;font-weight:600;margin-top:2px;">${totalEj}</div>
       </div>
       <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;">
         <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;">Última</div>
         <div style="font-size:13px;font-weight:600;margin-top:4px;">${sesiones[0]?.fecha||'—'}</div>
       </div>
     </div>
-    <p style="font-size:11px;color:var(--text3);margin-bottom:10px;">Fuente: ${fuente}</p>
+    <p style="font-size:11px;color:var(--text3);margin-bottom:10px;">Origen: ${fuente}</p>
     ${sesiones.map((s,i) => {
-      const filled = (s.ejercicios||[]).filter(e => e.peso||e.series||e.reps||e.obs);
+      const filled = (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs);
       return `
       <div class="history-card">
         <div class="history-card-hdr" onclick="toggleHCard('hc-${i}')">
@@ -730,7 +661,7 @@ function renderHistorial(sesiones, fuente) {
               <span style="color:var(--text2);font-family:var(--mono);font-size:12px;">${parts.join(' · ')||'—'}</span>
             </div>`;
           }).join('')}
-          ${s.obsGeneral ? `<p style="font-size:12px;color:var(--text2);margin-top:8px;font-style:italic;">${s.obsGeneral}</p>` : ''}
+          ${s.obsGeneral?`<p style="font-size:12px;color:var(--text2);margin-top:8px;font-style:italic;">${s.obsGeneral}</p>`:''}
         </div>
       </div>`;
     }).join('')}`;
@@ -744,12 +675,6 @@ function toggleHCard(id) {
   openHCard = id;
   document.getElementById(id)?.classList.toggle('open');
   document.getElementById('chev-'+id)?.classList.toggle('open');
-}
-
-function calcularStats(sesiones) {
-  const totalEj = sesiones.reduce((acc,s) =>
-    acc + (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs).length, 0);
-  return { totalEj };
 }
 </script>
 </body>
