@@ -390,12 +390,41 @@ function initials(n)    { return n.trim().split(/\s+/).map(w=>w[0]).join('').sli
 function genId()        { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function toBase64(obj)  { return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }
 
+// Formatea cualquier fecha (ISO, dd/mm/yyyy, Date…) a "Lun 5 may 2026 · 22:00"
+function formatFecha(raw) {
+  if (!raw) return '—';
+  let d;
+  if (typeof raw === 'string' && /^\d{2}\/\d{2}\/\d{4}/.test(raw)) {
+    // Formato dd/mm/yyyy [hh:mm] — construir manualmente para evitar zona horaria
+    const [datePart, timePart] = raw.split(' ');
+    const [dd, mm, yyyy] = datePart.split('/');
+    d = timePart ? new Date(`${yyyy}-${mm}-${dd}T${timePart}`) : new Date(`${yyyy}-${mm}-${dd}T12:00:00`);
+  } else {
+    d = new Date(raw);
+  }
+  if (isNaN(d)) return String(raw);
+  const fecha = d.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+  const hora  = d.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+  return `${fecha} · ${hora}`;
+}
+
+// Fecha+hora actual formateada para guardar
+function fechaAhora() {
+  const d = new Date();
+  const dd   = String(d.getDate()).padStart(2,'0');
+  const mm   = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  const hh   = String(d.getHours()).padStart(2,'0');
+  const min  = String(d.getMinutes()).padStart(2,'0');
+  return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+}
+
 // ── ENVÍO A SHEETS con Image trick (evita CORS/ERR_FAILED) ──
 // fetch con no-cors no devuelve respuesta legible pero SÍ ejecuta el script.
 // Para el historial (que necesita respuesta) usamos fetch normal.
 function enviarASheets(session) {
   return new Promise((resolve) => {
-    if (!SCRIPT_URL || SCRIPT_URL === 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
+    if (!SCRIPT_URL || SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbyTzQGu1Pz92xB7c2-eksIhWj7gLSMvyoZabNiTFqCUrNVvwpOsmyuC8rsH-2eQZFrZTw/exec') {
       resolve({ ok: false, reason: 'no_url' });
       return;
     }
@@ -532,7 +561,7 @@ function getData(id) {
 async function submitSession() {
   const sel = EXERCISES.filter(e => selected.has(e.id));
   const ejercicios = sel.map(ex => ({ ...ex, ...getData(ex.id) }));
-  const fecha = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const fecha = fechaAhora();
 
   const session = {
     id:         genId(),
@@ -572,11 +601,11 @@ function deleteLocal(sessionId) {
 function mostrarConfirmacion(s) {
   const filled = s.ejercicios.filter(e => e.peso||e.series||e.reps||e.obs);
   document.getElementById('confirm-sub').textContent =
-    `${s.fecha} · ${s.cliente} · ${filled.length} ejercicios`;
+    `${formatFecha(s.fecha)} · ${s.cliente} · ${filled.length} ejercicios`;
   document.getElementById('confirm-header').innerHTML = `
     <div class="avatar">${initials(s.cliente)}</div>
     <div><p style="font-weight:600;font-size:15px;">${s.cliente}</p>
-         <p style="font-size:12px;color:var(--text2);">${s.fecha}</p></div>`;
+         <p style="font-size:12px;color:var(--text2);">${formatFecha(s.fecha)}</p></div>`;
   document.getElementById('summary-rows').innerHTML = filled.map(e => {
     const parts=[];
     if(e.peso)   parts.push(e.peso+' kg');
@@ -607,7 +636,7 @@ async function cargarHistorial() {
   cont.innerHTML = '';
 
   // Intentar desde Sheets
-  if (SCRIPT_URL && SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
+  if (SCRIPT_URL && SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbyTzQGu1Pz92xB7c2-eksIhWj7gLSMvyoZabNiTFqCUrNVvwpOsmyuC8rsH-2eQZFrZTw/exec') {
     try {
       const url = `${SCRIPT_URL}?action=historial&cliente=${encodeURIComponent(clientName)}`;
       const resp = await fetch(url);
@@ -647,7 +676,7 @@ function renderHistorial(sesiones) {
       </div>
       <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;">
         <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;">Última</div>
-        <div style="font-size:13px;font-weight:600;margin-top:4px;">${sesiones[0]?.fecha||'—'}</div>
+        <div style="font-size:13px;font-weight:600;margin-top:4px;">${formatFecha(sesiones[0]?.fecha)||'—'}</div>
       </div>
     </div>
     ${sesiones.map((s,i) => {
@@ -656,7 +685,7 @@ function renderHistorial(sesiones) {
       <div class="history-card" id="hcard-wrap-${s.id}">
         <div class="history-card-hdr" onclick="toggleHCard('hc-${i}')">
           <div class="history-card-hdr-left">
-            <p style="font-weight:500;font-size:14px;">${s.fecha}</p>
+            <p style="font-weight:500;font-size:14px;">${formatFecha(s.fecha)}</p>
             <p style="font-size:12px;color:var(--text2);">${filled.length} ejercicios registrados</p>
           </div>
           <span class="chevron" id="chev-hc-${i}">›</span>
@@ -814,7 +843,7 @@ function exportarClienteCSV() {
 function abrirDeleteOverlay(sessionId, fecha) {
   pendingDeleteId = sessionId;
   document.getElementById('delete-msg').textContent =
-    `¿Eliminar la sesión del ${fecha}? Se borrará de este dispositivo.`;
+    `¿Eliminar la sesión del ${formatFecha(fecha)}? Se borrará de este dispositivo.`;
   document.getElementById('delete-overlay').classList.add('open');
 }
 function closeDeleteOverlay() {
