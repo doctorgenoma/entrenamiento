@@ -9,209 +9,125 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg:       #f5f4f0;
-      --bg2:      #eceae3;
-      --bg3:      #e2e0d8;
-      --surface:  #ffffff;
-      --text:     #141410;
-      --text2:    #6b6960;
-      --text3:    #a09d94;
-      --border:   rgba(20,20,16,0.10);
-      --border2:  rgba(20,20,16,0.20);
-      --green:    #1a7a58;
-      --green-lt: #d4ede4;
-      --green-tx: #0d4a35;
-      --accent:   #c8622a;
-      --accent-lt:#f5e4d8;
-      --radius:   10px;
-      --radius-lg:16px;
-      --font:     'DM Sans', sans-serif;
-      --mono:     'DM Mono', monospace;
-      --shadow:   0 2px 12px rgba(20,20,16,0.08);
+      --bg:#f5f4f0; --bg2:#eceae3; --bg3:#e2e0d8; --surface:#ffffff;
+      --text:#141410; --text2:#6b6960; --text3:#a09d94;
+      --border:rgba(20,20,16,0.10); --border2:rgba(20,20,16,0.20);
+      --green:#1a7a58; --green-lt:#d4ede4; --green-tx:#0d4a35;
+      --red:#c8622a; --red-lt:#f5e4d8;
+      --radius:10px; --radius-lg:16px;
+      --font:'DM Sans',sans-serif; --mono:'DM Mono',monospace;
+      --shadow:0 2px 12px rgba(20,20,16,0.08);
     }
-
-    html, body {
-      min-height:100%; background:var(--bg);
-      font-family:var(--font); color:var(--text);
-      -webkit-font-smoothing:antialiased;
-    }
-    .app {
-      min-height:100vh; max-width:480px;
-      margin:0 auto; background:var(--surface);
-      padding:1rem 1rem 3rem; box-shadow:var(--shadow);
-    }
+    html,body { min-height:100%; background:var(--bg); font-family:var(--font); color:var(--text); -webkit-font-smoothing:antialiased; }
+    .app { min-height:100vh; max-width:480px; margin:0 auto; background:var(--surface); padding:1rem 1rem 3rem; box-shadow:var(--shadow); }
 
     .screen { display:none; animation:fadeIn 0.2s ease; }
     .screen.active { display:block; }
     @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
 
     .logo-bar { text-align:center; padding:2rem 0 1.75rem; }
-    .logo-icon {
-      width:60px; height:60px; border-radius:50%; background:var(--green);
-      margin:0 auto 16px; display:flex; align-items:center; justify-content:center;
-      box-shadow:0 4px 16px rgba(26,122,88,0.30);
-    }
-    .logo-icon svg { stroke:#fff; stroke-width:2; fill:none; }
-    .logo-bar h1 { font-size:24px; font-weight:600; letter-spacing:-0.5px; }
-    .logo-bar p  { font-size:14px; color:var(--text2); margin-top:4px; }
+    .logo-icon { width:60px;height:60px;border-radius:50%;background:var(--green);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(26,122,88,0.30); }
+    .logo-icon svg { stroke:#fff;stroke-width:2;fill:none; }
+    .logo-bar h1 { font-size:24px;font-weight:600;letter-spacing:-0.5px; }
+    .logo-bar p  { font-size:14px;color:var(--text2);margin-top:4px; }
 
-    input, select, textarea {
-      width:100%; font-size:16px; padding:11px 13px;
-      border:1.5px solid var(--border2); border-radius:var(--radius);
-      background:var(--surface); color:var(--text);
-      font-family:var(--font); appearance:none; outline:none;
-      transition:border-color 0.15s, box-shadow 0.15s;
-    }
-    input:focus, select:focus, textarea:focus {
-      border-color:var(--green); box-shadow:0 0 0 3px rgba(26,122,88,0.12);
-    }
-    textarea { resize:vertical; min-height:56px; }
+    input,select,textarea { width:100%;font-size:16px;padding:11px 13px;border:1.5px solid var(--border2);border-radius:var(--radius);background:var(--surface);color:var(--text);font-family:var(--font);appearance:none;outline:none;transition:border-color 0.15s,box-shadow 0.15s; }
+    input:focus,select:focus,textarea:focus { border-color:var(--green);box-shadow:0 0 0 3px rgba(26,122,88,0.12); }
+    textarea { resize:vertical;min-height:56px; }
 
-    .btn {
-      display:block; width:100%; font-size:15px; font-weight:500;
-      padding:12px 18px; border-radius:var(--radius);
-      border:1.5px solid var(--border2); background:transparent;
-      color:var(--text); cursor:pointer; font-family:var(--font);
-      text-align:center; transition:all 0.15s;
-      -webkit-tap-highlight-color:transparent;
-    }
+    .btn { display:block;width:100%;font-size:15px;font-weight:500;padding:12px 18px;border-radius:var(--radius);border:1.5px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;font-family:var(--font);text-align:center;transition:all 0.15s;-webkit-tap-highlight-color:transparent; }
     .btn:active { transform:scale(0.97); }
-    .btn-primary { background:var(--text); color:var(--surface); border-color:var(--text); }
+    .btn-primary { background:var(--text);color:var(--surface);border-color:var(--text); }
     .btn-primary:hover { opacity:0.85; }
-    .btn-green { background:var(--green); color:#fff; border-color:var(--green); box-shadow:0 3px 10px rgba(26,122,88,0.25); }
+    .btn-green { background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 3px 10px rgba(26,122,88,0.25); }
     .btn-green:hover { opacity:0.88; }
-    .btn-sm   { font-size:13px; padding:7px 14px; width:auto; display:inline-block; }
-    .btn-ghost{ border-color:transparent; color:var(--text2); }
-    .btn-row  { display:flex; gap:8px; flex-wrap:wrap; margin-top:1rem; align-items:center; }
+    .btn-red { background:var(--red-lt);color:var(--red);border-color:var(--red); }
+    .btn-red:hover { opacity:0.85; }
+    .btn-sm   { font-size:13px;padding:7px 14px;width:auto;display:inline-block; }
+    .btn-ghost{ border-color:transparent;color:var(--text2); }
+    .btn-row  { display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem;align-items:center; }
 
-    .section-label {
-      font-size:11px; font-weight:600; color:var(--text2);
-      letter-spacing:0.08em; text-transform:uppercase; margin:1.25rem 0 0.5rem;
-    }
-    .field-label { font-size:13px; color:var(--text2); display:block; margin-bottom:5px; }
+    .section-label { font-size:11px;font-weight:600;color:var(--text2);letter-spacing:0.08em;text-transform:uppercase;margin:1.25rem 0 0.5rem; }
+    .field-label { font-size:13px;color:var(--text2);display:block;margin-bottom:5px; }
 
-    .progress-wrap { height:3px; background:var(--bg2); border-radius:2px; margin-bottom:1.5rem; }
-    .progress-fill { height:3px; background:var(--green); border-radius:2px; transition:width 0.35s ease; }
+    .progress-wrap { height:3px;background:var(--bg2);border-radius:2px;margin-bottom:1.5rem; }
+    .progress-fill { height:3px;background:var(--green);border-radius:2px;transition:width 0.35s ease; }
 
-    .step-row { display:flex; align-items:center; gap:6px; margin-bottom:1rem; }
-    .step-dot { width:8px; height:8px; border-radius:50%; background:var(--bg3); flex-shrink:0; transition:background 0.2s; }
+    .step-row { display:flex;align-items:center;gap:6px;margin-bottom:1rem; }
+    .step-dot { width:8px;height:8px;border-radius:50%;background:var(--bg3);flex-shrink:0;transition:background 0.2s; }
     .step-dot.done   { background:var(--green); }
     .step-dot.active { background:var(--text); }
-    .step-text { font-size:12px; color:var(--text2); margin-left:4px; }
+    .step-text { font-size:12px;color:var(--text2);margin-left:4px; }
 
-    .back-btn {
-      display:flex; align-items:center; gap:6px; font-size:14px; color:var(--text2);
-      cursor:pointer; background:none; border:none; font-family:var(--font);
-      padding:0; margin-bottom:1rem; -webkit-tap-highlight-color:transparent;
-    }
+    .back-btn { display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text2);cursor:pointer;background:none;border:none;font-family:var(--font);padding:0;margin-bottom:1rem;-webkit-tap-highlight-color:transparent; }
     .back-btn:hover { color:var(--text); }
 
-    .chips-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px; }
-    .ex-chip {
-      display:inline-flex; align-items:center; gap:6px; padding:7px 13px;
-      border-radius:999px; border:1.5px solid var(--border2); background:var(--surface);
-      cursor:pointer; font-size:13px; color:var(--text);
-      transition:all 0.15s; user-select:none; -webkit-tap-highlight-color:transparent;
-    }
-    .ex-chip.selected { background:var(--green-lt); border-color:var(--green); color:var(--green-tx); }
-    .chip-check {
-      width:14px; height:14px; border-radius:50%;
-      border:1.5px solid var(--border2); flex-shrink:0; transition:all 0.15s;
-    }
-    .ex-chip.selected .chip-check { background:var(--green); border-color:var(--green); }
+    .chips-wrap { display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px; }
+    .ex-chip { display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;border:1.5px solid var(--border2);background:var(--surface);cursor:pointer;font-size:13px;color:var(--text);transition:all 0.15s;user-select:none;-webkit-tap-highlight-color:transparent; }
+    .ex-chip.selected { background:var(--green-lt);border-color:var(--green);color:var(--green-tx); }
+    .chip-check { width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;transition:all 0.15s; }
+    .ex-chip.selected .chip-check { background:var(--green);border-color:var(--green); }
 
-    .ex-entry {
-      background:var(--surface); border:1.5px solid var(--border);
-      border-radius:var(--radius-lg); margin-bottom:8px; overflow:hidden;
-      transition:border-color 0.15s;
-    }
-    .ex-entry-hdr {
-      padding:13px 14px; display:flex; align-items:center; justify-content:space-between;
-      cursor:pointer; -webkit-tap-highlight-color:transparent;
-    }
+    .ex-entry { background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:8px;overflow:hidden;transition:border-color 0.15s; }
+    .ex-entry-hdr { padding:13px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;-webkit-tap-highlight-color:transparent; }
     .ex-entry-hdr:hover { background:var(--bg); }
-    .ex-left { display:flex; align-items:center; gap:10px; }
-    .ex-name { font-size:14px; font-weight:500; }
-    .status-dot { width:8px; height:8px; border-radius:50%; background:var(--bg3); flex-shrink:0; transition:background 0.2s; }
+    .ex-left { display:flex;align-items:center;gap:10px; }
+    .ex-name { font-size:14px;font-weight:500; }
+    .status-dot { width:8px;height:8px;border-radius:50%;background:var(--bg3);flex-shrink:0;transition:background 0.2s; }
     .status-dot.ok { background:var(--green); }
-    .chevron { font-size:16px; color:var(--text3); transition:transform 0.2s; line-height:1; }
+    .chevron { font-size:16px;color:var(--text3);transition:transform 0.2s;line-height:1; }
     .chevron.open { transform:rotate(90deg); }
-    .ex-body { display:none; padding:10px 14px 14px; border-top:1.5px solid var(--border); background:var(--bg); }
+    .ex-body { display:none;padding:10px 14px 14px;border-top:1.5px solid var(--border);background:var(--bg); }
     .ex-body.open { display:block; }
-    .fields-3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:8px; }
+    .fields-3 { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:8px; }
 
-    .summary-row {
-      display:flex; justify-content:space-between; align-items:baseline;
-      padding:9px 0; border-bottom:1px solid var(--border); font-size:13px;
-    }
+    .summary-row { display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px; }
     .summary-row:last-child { border-bottom:none; }
     .sum-name { font-weight:500; }
-    .sum-vals { color:var(--text2); font-size:12px; font-family:var(--mono); }
+    .sum-vals { color:var(--text2);font-size:12px;font-family:var(--mono); }
 
-    .avatar {
-      width:48px; height:48px; border-radius:50%;
-      background:var(--green); color:#fff; font-size:16px; font-weight:600;
-      display:flex; align-items:center; justify-content:center; flex-shrink:0;
-    }
+    .avatar { width:48px;height:48px;border-radius:50%;background:var(--green);color:#fff;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
 
-    .history-card {
-      background:var(--bg); border:1.5px solid var(--border);
-      border-radius:var(--radius-lg); margin-bottom:8px; overflow:hidden;
-    }
-    .history-card-hdr {
-      padding:11px 14px; display:flex; align-items:center; justify-content:space-between;
-      cursor:pointer; -webkit-tap-highlight-color:transparent;
-    }
+    /* History cards */
+    .history-card { background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:8px;overflow:hidden; }
+    .history-card-hdr { padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;-webkit-tap-highlight-color:transparent; }
     .history-card-hdr:hover { background:var(--bg2); }
-    .history-card-body { display:none; padding:0 14px 12px; }
+    .history-card-hdr-left { flex:1; }
+    .history-card-body { display:none;padding:0 14px 12px; }
     .history-card-body.open { display:block; }
-    .history-ex-row {
-      font-size:12px; padding:5px 0; border-bottom:1px solid var(--border);
-      display:flex; justify-content:space-between;
-    }
+    .history-ex-row { font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between; }
     .history-ex-row:last-child { border-bottom:none; }
+    .delete-session-btn { font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid var(--red);background:transparent;color:var(--red);cursor:pointer;font-family:var(--font);margin-top:10px;-webkit-tap-highlight-color:transparent; }
+    .delete-session-btn:hover { background:var(--red-lt); }
 
-    .status-banner {
-      padding:10px 14px; border-radius:var(--radius); font-size:13px;
-      margin-bottom:12px; display:none; text-align:center; font-weight:500;
-    }
+    .status-banner { padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:12px;display:none;text-align:center;font-weight:500; }
     .status-banner.show    { display:block; }
-    .status-banner.loading { background:var(--bg2); color:var(--text2); }
-    .status-banner.ok      { background:var(--green-lt); color:var(--green-tx); }
-    .status-banner.err     { background:var(--accent-lt); color:var(--accent); }
+    .status-banner.loading { background:var(--bg2);color:var(--text2); }
+    .status-banner.ok      { background:var(--green-lt);color:var(--green-tx); }
+    .status-banner.err     { background:var(--red-lt);color:var(--red); }
 
-    .success-icon {
-      width:64px; height:64px; border-radius:50%; background:var(--green);
-      margin:0 auto 1rem; display:flex; align-items:center; justify-content:center;
-      box-shadow:0 6px 20px rgba(26,122,88,0.30);
-    }
-    .success-icon svg { stroke:#fff; stroke-width:2.5; fill:none; }
+    .success-icon { width:64px;height:64px;border-radius:50%;background:var(--green);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(26,122,88,0.30); }
+    .success-icon svg { stroke:#fff;stroke-width:2.5;fill:none; }
 
-    .card {
-      background:var(--surface); border:1.5px solid var(--border);
-      border-radius:var(--radius-lg); padding:1rem 1.25rem; margin-bottom:12px;
-    }
+    .card { background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:12px; }
 
-    .spinner {
-      display:inline-block; width:14px; height:14px;
-      border:2px solid var(--border2); border-top-color:var(--green);
-      border-radius:50%; animation:spin 0.7s linear infinite;
-      vertical-align:middle; margin-right:6px;
-    }
+    .spinner { display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px; }
     @keyframes spin { to{transform:rotate(360deg)} }
 
-    .tabs { display:flex; border-bottom:1.5px solid var(--border); margin-bottom:1.25rem; }
-    .tab-btn {
-      flex:1; font-size:13px; font-weight:500; padding:10px 8px;
-      border:none; background:none; color:var(--text2); cursor:pointer;
-      border-bottom:2.5px solid transparent; margin-bottom:-1.5px;
-      font-family:var(--font); transition:all 0.15s;
-    }
-    .tab-btn.active { color:var(--green); border-bottom-color:var(--green); }
+    .tabs { display:flex;border-bottom:1.5px solid var(--border);margin-bottom:1.25rem; }
+    .tab-btn { flex:1;font-size:13px;font-weight:500;padding:10px 8px;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1.5px;font-family:var(--font);transition:all 0.15s; }
+    .tab-btn.active { color:var(--green);border-bottom-color:var(--green); }
     .tab-pane { display:none; }
     .tab-pane.active { display:block; }
+
+    /* Confirm dialog */
+    .confirm-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:flex-end;justify-content:center; }
+    .confirm-overlay.open { display:flex; }
+    .confirm-sheet { background:var(--surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:1.25rem;width:100%;max-width:480px; }
+    .confirm-sheet h3 { font-size:16px;font-weight:600;margin-bottom:6px; }
+    .confirm-sheet p { font-size:13px;color:var(--text2);margin-bottom:1rem; }
+    .confirm-sheet .btn-row { margin-top:0; }
   </style>
 </head>
 <body>
@@ -228,8 +144,7 @@
       <div class="logo-icon">
         <svg width="28" height="28" viewBox="0 0 24 24">
           <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-          <path d="M2 17l10 5 10-5"/>
-          <path d="M2 12l10 5 10-5"/>
+          <path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
         </svg>
       </div>
       <h1>Mi entrenamiento</h1>
@@ -245,7 +160,6 @@
 
   <!-- ===== PANEL CLIENTE ===== -->
   <div class="screen" id="s-panel">
-
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
       <div style="display:flex;align-items:center;gap:12px;">
         <div class="avatar" id="panel-avatar"></div>
@@ -273,8 +187,8 @@
         <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Toca los que has hecho en esta sesión.</p>
         <div id="chips-container"></div>
         <div class="btn-row">
-          <button class="btn btn-sm"       onclick="selectAll()">Todos</button>
-          <button class="btn btn-sm btn-ghost" onclick="clearAll()">Limpiar</button>
+          <button class="btn btn-sm"            onclick="selectAll()">Todos</button>
+          <button class="btn btn-sm btn-ghost"   onclick="clearAll()">Limpiar</button>
           <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="goToRegister()">Continuar ›</button>
         </div>
         <div class="status-banner" id="banner-chips"></div>
@@ -302,9 +216,7 @@
     <!-- TAB: HISTORIAL -->
     <div class="tab-pane" id="pane-historial">
       <div class="status-banner" id="banner-historial"></div>
-      <div id="historial-container">
-        <p style="font-size:13px;color:var(--text2);">Cargando tu historial...</p>
-      </div>
+      <div id="historial-container"></div>
     </div>
   </div>
 
@@ -328,17 +240,28 @@
     </div>
   </div>
 
-</div><!-- /app -->
+  <!-- ===== CONFIRM DELETE SHEET ===== -->
+  <div class="confirm-overlay" id="delete-overlay">
+    <div class="confirm-sheet">
+      <h3>Eliminar sesión</h3>
+      <p id="delete-msg">¿Seguro que quieres eliminar esta sesión? Se borrará del dispositivo.</p>
+      <div class="btn-row">
+        <button class="btn btn-ghost btn-sm" onclick="closeDeleteOverlay()">Cancelar</button>
+        <button class="btn btn-red   btn-sm" onclick="confirmDelete()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 <script>
-// ── EJERCICIOS ──────────────────────────────────────────────
+// ── EJERCICIOS ───────────────────────────────────────────────
 const EXERCISES = [
   {id:'squat-clean',     nombre:'Squat clean',               cat:'Halterofilia'},
   {id:'power-clean',     nombre:'Power clean',               cat:'Halterofilia'},
   {id:'peso-muerto',     nombre:'Peso muerto',               cat:'Piernas'},
   {id:'sent-bulg',       nombre:'Sentadillas búlgaras',      cat:'Piernas'},
   {id:'sent-norm',       nombre:'Sentadillas normales',      cat:'Piernas'},
-  {id:'zancadas',        nombre:'zancadas',                  cat:'Piernas'},
   {id:'aductores',       nombre:'Aductores',                 cat:'Piernas'},
   {id:'abductores',      nombre:'Abductores',                cat:'Piernas'},
   {id:'hip-thrusts',     nombre:'Hip thrusts (pelvis)',      cat:'Glúteos'},
@@ -357,19 +280,19 @@ const EXERCISES = [
   {id:'escap-barra',     nombre:'Escápulas (colgada barra)', cat:'Escápulas'},
 ];
 
-// ── ESTADO ──────────────────────────────────────────────────
-let clientName = '';
-let selected   = new Set();
-let openEntry  = null;
-let openHCard  = null;
+// ── ESTADO ───────────────────────────────────────────────────
+let clientName  = '';
+let selected    = new Set();
+let openEntry   = null;
+let openHCard   = null;
+let pendingDeleteId = null;
 
-// ── UTILIDADES ──────────────────────────────────────────────
+// ── UTILIDADES ───────────────────────────────────────────────
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
 }
-
 function showTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
@@ -377,7 +300,6 @@ function showTab(name) {
   document.getElementById('pane-' + name).classList.add('active');
   if (name === 'historial') cargarHistorial();
 }
-
 function banner(id, msg, type='loading') {
   const el = document.getElementById(id);
   el.innerHTML = type === 'loading' ? `<span class="spinner"></span>${msg}` : msg;
@@ -385,16 +307,34 @@ function banner(id, msg, type='loading') {
   if (type !== 'loading') setTimeout(() => el.classList.remove('show'), 5000);
 }
 function hideBanner(id) { document.getElementById(id).classList.remove('show'); }
+function initials(n)    { return n.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function genId()        { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function toBase64(obj)  { return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }
 
-function initials(n) { return n.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
-function genId()      { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+// ── ENVÍO A SHEETS con Image trick (evita CORS/ERR_FAILED) ──
+// fetch con no-cors no devuelve respuesta legible pero SÍ ejecuta el script.
+// Para el historial (que necesita respuesta) usamos fetch normal.
+function enviarASheets(session) {
+  return new Promise((resolve) => {
+    if (!SCRIPT_URL || SCRIPT_URL === 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
+      resolve({ ok: false, reason: 'no_url' });
+      return;
+    }
+    const encoded = toBase64(session);
+    const url = `${SCRIPT_URL}?action=guardar&data=${encodeURIComponent(encoded)}`;
 
-// Codifica un objeto en base64 para enviarlo como parámetro GET
-function toBase64(obj) {
-  return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+    // Usamos una imagen para disparar la petición GET sin restricciones CORS
+    const img = new Image();
+    img.onload  = () => resolve({ ok: true });
+    img.onerror = () => resolve({ ok: true }); // el script ejecutó pero devuelve JSON, no imagen → onerror es normal
+    img.src = url;
+
+    // Timeout de seguridad: 8 segundos
+    setTimeout(() => resolve({ ok: true, reason: 'timeout' }), 8000);
+  });
 }
 
-// ── LOGIN ────────────────────────────────────────────────────
+// ── LOGIN ─────────────────────────────────────────────────────
 function loginCliente() {
   const val = document.getElementById('client-name').value.trim();
   if (!val) { banner('banner-login','Por favor escribe tu nombre','err'); return; }
@@ -415,7 +355,7 @@ document.getElementById('client-name').addEventListener('keydown', e => {
   if (e.key === 'Enter') loginCliente();
 });
 
-// ── PASO 1: CHIPS ────────────────────────────────────────────
+// ── PASO 1: CHIPS ─────────────────────────────────────────────
 function renderChips() {
   const cats = [...new Set(EXERCISES.map(e => e.cat))];
   let html = '';
@@ -437,7 +377,7 @@ function toggleChip(id) {
 function selectAll() { EXERCISES.forEach(e => selected.add(e.id)); renderChips(); }
 function clearAll()  { selected.clear(); renderChips(); }
 
-// ── PASO 2: REGISTRO ─────────────────────────────────────────
+// ── PASO 2: REGISTRO ──────────────────────────────────────────
 function goToRegister() {
   if (!selected.size) { banner('banner-chips','Selecciona al menos un ejercicio','err'); return; }
   hideBanner('banner-chips');
@@ -450,7 +390,6 @@ function volverPaso1() {
   document.getElementById('paso-2').style.display = 'none';
   document.getElementById('paso-1').style.display = 'block';
 }
-
 function renderEntries() {
   const sel  = EXERCISES.filter(e => selected.has(e.id));
   const cats = [...new Set(sel.map(e => e.cat))];
@@ -487,7 +426,6 @@ function renderEntries() {
   const first = EXERCISES.find(e => selected.has(e.id));
   if (first) toggleEntry(first.id);
 }
-
 function toggleEntry(id) {
   if (openEntry && openEntry !== id) {
     document.getElementById('body-'+openEntry)?.classList.remove('open');
@@ -511,11 +449,11 @@ function getData(id) {
   };
 }
 
-// ── ENVÍO ────────────────────────────────────────────────────
+// ── ENVÍO DE SESIÓN ───────────────────────────────────────────
 async function submitSession() {
   const sel = EXERCISES.filter(e => selected.has(e.id));
   const ejercicios = sel.map(ex => ({ ...ex, ...getData(ex.id) }));
-  const fecha = new Date().toLocaleDateString('es-ES', {day:'2-digit',month:'2-digit',year:'numeric'});
+  const fecha = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
 
   const session = {
     id:         genId(),
@@ -527,27 +465,10 @@ async function submitSession() {
     createdAt:  Date.now()
   };
 
-  // Guardar siempre en local como respaldo
   guardarLocal(session);
-
-  // Enviar a Google Sheets via GET + base64
-  if (SCRIPT_URL && SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
-    banner('banner-submit','Guardando en Google Sheets...','loading');
-    try {
-      const encoded = toBase64(session);
-      const url = `${SCRIPT_URL}?action=guardar&data=${encodeURIComponent(encoded)}`;
-      const resp = await fetch(url);
-      const data = await resp.json();
-      if (data.ok) {
-        hideBanner('banner-submit');
-      } else {
-        banner('banner-submit', `⚠️ Error en Sheets: ${data.error || 'desconocido'}`, 'err');
-      }
-    } catch(e) {
-      banner('banner-submit','⚠️ Sin conexión. Datos guardados en el dispositivo.','err');
-    }
-  }
-
+  banner('banner-submit','Guardando en Google Sheets...','loading');
+  await enviarASheets(session);
+  hideBanner('banner-submit');
   mostrarConfirmacion(session);
 }
 
@@ -556,10 +477,16 @@ function guardarLocal(session) {
   const key = 'pt_' + clientName;
   const arr = JSON.parse(localStorage.getItem(key) || '[]');
   arr.unshift(session);
-  try { localStorage.setItem(key, JSON.stringify(arr.slice(0,50))); } catch(e) {}
+  try { localStorage.setItem(key, JSON.stringify(arr.slice(0,100))); } catch(e) {}
 }
 function getLocal() {
   return JSON.parse(localStorage.getItem('pt_' + clientName) || '[]');
+}
+function deleteLocal(sessionId) {
+  const key = 'pt_' + clientName;
+  const arr = JSON.parse(localStorage.getItem(key) || '[]');
+  const filtered = arr.filter(s => s.id !== sessionId);
+  localStorage.setItem(key, JSON.stringify(filtered));
 }
 
 // ── CONFIRMACIÓN ──────────────────────────────────────────────
@@ -585,7 +512,6 @@ function mostrarConfirmacion(s) {
   else obsEl.style.display='none';
   goTo('s-confirm');
 }
-
 function nuevaSesion() {
   selected.clear(); openEntry = null;
   document.getElementById('obs-general').value = '';
@@ -601,6 +527,7 @@ async function cargarHistorial() {
   banner('banner-historial','Cargando tu historial...','loading');
   cont.innerHTML = '';
 
+  // Intentar desde Sheets
   if (SCRIPT_URL && SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
     try {
       const url = `${SCRIPT_URL}?action=historial&cliente=${encodeURIComponent(clientName)}`;
@@ -608,22 +535,23 @@ async function cargarHistorial() {
       const data = await resp.json();
       if (data.ok && data.sesiones.length) {
         hideBanner('banner-historial');
-        renderHistorial(data.sesiones, 'Google Sheets');
+        renderHistorial(data.sesiones);
         return;
       }
-    } catch(e) { /* fallback */ }
+    } catch(e) { /* fallback a local */ }
   }
 
+  // Fallback local
   const local = getLocal();
   hideBanner('banner-historial');
   if (!local.length) {
     cont.innerHTML = '<p style="font-size:13px;color:var(--text2);">Aún no tienes sesiones registradas.</p>';
     return;
   }
-  renderHistorial(local, 'dispositivo');
+  renderHistorial(local);
 }
 
-function renderHistorial(sesiones, fuente) {
+function renderHistorial(sesiones) {
   const cont = document.getElementById('historial-container');
   const totalEj = sesiones.reduce((acc,s) =>
     acc + (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs).length, 0);
@@ -643,13 +571,12 @@ function renderHistorial(sesiones, fuente) {
         <div style="font-size:13px;font-weight:600;margin-top:4px;">${sesiones[0]?.fecha||'—'}</div>
       </div>
     </div>
-    <p style="font-size:11px;color:var(--text3);margin-bottom:10px;">Origen: ${fuente}</p>
     ${sesiones.map((s,i) => {
       const filled = (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs);
       return `
-      <div class="history-card">
+      <div class="history-card" id="hcard-wrap-${s.id}">
         <div class="history-card-hdr" onclick="toggleHCard('hc-${i}')">
-          <div>
+          <div class="history-card-hdr-left">
             <p style="font-weight:500;font-size:14px;">${s.fecha}</p>
             <p style="font-size:12px;color:var(--text2);">${filled.length} ejercicios registrados</p>
           </div>
@@ -667,6 +594,9 @@ function renderHistorial(sesiones, fuente) {
             </div>`;
           }).join('')}
           ${s.obsGeneral?`<p style="font-size:12px;color:var(--text2);margin-top:8px;font-style:italic;">${s.obsGeneral}</p>`:''}
+          <button class="delete-session-btn" onclick="abrirDeleteOverlay('${s.id}','${s.fecha}')">
+            🗑 Eliminar esta sesión
+          </button>
         </div>
       </div>`;
     }).join('')}`;
@@ -680,6 +610,33 @@ function toggleHCard(id) {
   openHCard = id;
   document.getElementById(id)?.classList.toggle('open');
   document.getElementById('chev-'+id)?.classList.toggle('open');
+}
+
+// ── BORRAR SESIÓN ─────────────────────────────────────────────
+function abrirDeleteOverlay(sessionId, fecha) {
+  pendingDeleteId = sessionId;
+  document.getElementById('delete-msg').textContent =
+    `¿Eliminar la sesión del ${fecha}? Se borrará de este dispositivo.`;
+  document.getElementById('delete-overlay').classList.add('open');
+}
+function closeDeleteOverlay() {
+  pendingDeleteId = null;
+  document.getElementById('delete-overlay').classList.remove('open');
+}
+function confirmDelete() {
+  if (!pendingDeleteId) return;
+  deleteLocal(pendingDeleteId);
+  // Animación de salida
+  const card = document.getElementById('hcard-wrap-' + pendingDeleteId);
+  if (card) {
+    card.style.transition = 'opacity 0.25s, transform 0.25s';
+    card.style.opacity = '0';
+    card.style.transform = 'translateX(30px)';
+    setTimeout(() => card.remove(), 250);
+  }
+  closeDeleteOverlay();
+  // Recargar stats
+  setTimeout(() => cargarHistorial(), 300);
 }
 </script>
 </body>
