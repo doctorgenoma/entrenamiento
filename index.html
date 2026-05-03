@@ -3,443 +3,448 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <meta name="description" content="App de registro de entrenamiento personal" />
-  <meta name="theme-color" content="#ffffff" />
+  <meta name="theme-color" content="#0a0a0a" />
   <title>Mi entrenamiento</title>
   <link rel="manifest" href="manifest.json" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #ffffff;
-      --bg2: #f7f7f5;
-      --bg3: #f0efe9;
-      --text: #1a1a18;
-      --text2: #6b6b66;
-      --text3: #9b9b96;
-      --border: rgba(0,0,0,0.12);
-      --border2: rgba(0,0,0,0.22);
-      --green: #1D9E75;
-      --green-bg: #E1F5EE;
-      --green-text: #085041;
-      --red-bg: #FCEBEB;
-      --red-text: #A32D2D;
-      --radius: 10px;
-      --radius-lg: 14px;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #1c1c1a;
-        --bg2: #252523;
-        --bg3: #2e2e2b;
-        --text: #f0efe9;
-        --text2: #9b9b96;
-        --text3: #6b6b66;
-        --border: rgba(255,255,255,0.12);
-        --border2: rgba(255,255,255,0.22);
-        --green-bg: #063d2c;
-        --green-text: #5DCAA5;
-        --red-bg: #3a1010;
-        --red-text: #F09595;
-      }
+      --bg:       #f5f4f0;
+      --bg2:      #eceae3;
+      --bg3:      #e2e0d8;
+      --surface:  #ffffff;
+      --text:     #141410;
+      --text2:    #6b6960;
+      --text3:    #a09d94;
+      --border:   rgba(20,20,16,0.10);
+      --border2:  rgba(20,20,16,0.20);
+      --green:    #1a7a58;
+      --green-lt: #d4ede4;
+      --green-tx: #0d4a35;
+      --accent:   #c8622a;
+      --accent-lt:#f5e4d8;
+      --radius:   10px;
+      --radius-lg:16px;
+      --font:     'DM Sans', sans-serif;
+      --mono:     'DM Mono', monospace;
+      --shadow:   0 2px 12px rgba(20,20,16,0.08);
     }
 
     html, body {
-      height: 100%;
-      background: var(--bg3);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      color: var(--text);
+      min-height: 100%; background: var(--bg);
+      font-family: var(--font); color: var(--text);
       -webkit-font-smoothing: antialiased;
     }
 
     .app {
-      min-height: 100vh;
-      max-width: 480px;
-      margin: 0 auto;
-      background: var(--bg);
-      padding: 1rem 1rem 2rem;
+      min-height: 100vh; max-width: 480px;
+      margin: 0 auto; background: var(--surface);
+      padding: 1rem 1rem 3rem;
+      box-shadow: var(--shadow);
     }
 
-    /* --- Screens --- */
-    .screen { display: none; }
+    /* Screens */
+    .screen { display: none; animation: fadeIn 0.2s ease; }
     .screen.active { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
 
-    /* --- Logo bar --- */
-    .logo-bar {
-      text-align: center;
-      padding: 2rem 0 1.5rem;
-    }
+    /* Logo */
+    .logo-bar { text-align:center; padding:2rem 0 1.75rem; }
     .logo-icon {
-      width: 56px; height: 56px;
-      border-radius: 50%;
-      background: var(--green-bg);
-      margin: 0 auto 14px;
-      display: flex; align-items: center; justify-content: center;
+      width:60px; height:60px; border-radius:50%;
+      background:var(--green); margin:0 auto 16px;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow: 0 4px 16px rgba(26,122,88,0.30);
     }
-    .logo-icon svg { stroke: var(--green); stroke-width: 2; fill: none; }
-    .logo-bar h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
-    .logo-bar p { font-size: 14px; color: var(--text2); margin-top: 4px; }
+    .logo-icon svg { stroke:#fff; stroke-width:2; fill:none; }
+    .logo-bar h1 { font-size:24px; font-weight:600; letter-spacing:-0.5px; }
+    .logo-bar p  { font-size:14px; color:var(--text2); margin-top:4px; }
 
-    /* --- Cards --- */
-    .card {
-      background: var(--bg);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1rem 1.25rem;
-      margin-bottom: 12px;
-    }
-
-    /* --- Inputs --- */
-    input[type="text"],
-    input[type="number"],
-    input[type="date"],
-    select, textarea {
-      width: 100%;
-      font-size: 16px;
-      padding: 10px 12px;
-      border: 0.5px solid var(--border2);
-      border-radius: var(--radius);
-      background: var(--bg);
-      color: var(--text);
-      font-family: inherit;
-      appearance: none;
-      -webkit-appearance: none;
-      outline: none;
-      transition: box-shadow 0.15s;
+    /* Inputs */
+    input, select, textarea {
+      width:100%; font-size:16px; padding:11px 13px;
+      border:1.5px solid var(--border2); border-radius:var(--radius);
+      background:var(--surface); color:var(--text);
+      font-family:var(--font); appearance:none; outline:none;
+      transition:border-color 0.15s, box-shadow 0.15s;
     }
     input:focus, select:focus, textarea:focus {
-      box-shadow: 0 0 0 2px var(--green);
+      border-color:var(--green); box-shadow:0 0 0 3px rgba(26,122,88,0.12);
     }
-    textarea { resize: vertical; min-height: 54px; }
-    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b66' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+    textarea { resize:vertical; min-height:56px; }
 
-    /* --- Buttons --- */
+    /* Buttons */
     .btn {
-      display: block; width: 100%;
-      font-size: 15px; font-weight: 500;
-      padding: 12px 18px;
-      border-radius: var(--radius);
-      border: 0.5px solid var(--border2);
-      background: transparent;
-      color: var(--text);
-      cursor: pointer;
-      font-family: inherit;
-      text-align: center;
-      transition: background 0.15s, opacity 0.15s, transform 0.1s;
-      -webkit-tap-highlight-color: transparent;
+      display:block; width:100%; font-size:15px; font-weight:500;
+      padding:12px 18px; border-radius:var(--radius);
+      border:1.5px solid var(--border2); background:transparent;
+      color:var(--text); cursor:pointer; font-family:var(--font);
+      text-align:center; transition:all 0.15s;
+      -webkit-tap-highlight-color:transparent;
     }
-    .btn:active { transform: scale(0.97); }
-    .btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); }
-    .btn-primary:hover { opacity: 0.85; }
-    .btn-success { background: var(--green); color: #fff; border-color: var(--green); }
-    .btn-success:hover { opacity: 0.88; }
-    .btn-sm { font-size: 13px; padding: 7px 14px; width: auto; display: inline-block; }
-    .btn-ghost { border-color: transparent; color: var(--text2); background: transparent; }
-    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 1rem; align-items: center; }
+    .btn:active { transform:scale(0.97); }
+    .btn-primary { background:var(--text); color:var(--surface); border-color:var(--text); }
+    .btn-primary:hover { opacity:0.85; }
+    .btn-green { background:var(--green); color:#fff; border-color:var(--green); box-shadow:0 3px 10px rgba(26,122,88,0.25); }
+    .btn-green:hover { opacity:0.88; }
+    .btn-sm { font-size:13px; padding:7px 14px; width:auto; display:inline-block; }
+    .btn-ghost { border-color:transparent; color:var(--text2); }
+    .btn-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:1rem; align-items:center; }
 
-    /* --- Labels --- */
+    /* Labels */
     .section-label {
-      font-size: 11px; font-weight: 600;
-      color: var(--text2);
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      margin: 1.25rem 0 0.5rem;
+      font-size:11px; font-weight:600; color:var(--text2);
+      letter-spacing:0.08em; text-transform:uppercase; margin:1.25rem 0 0.5rem;
     }
-    label.field-label {
-      font-size: 12px; color: var(--text2);
-      display: block; margin-bottom: 4px;
-    }
+    .field-label { font-size:13px; color:var(--text2); display:block; margin-bottom:5px; }
 
-    /* --- Progress bar --- */
-    .progress-wrap { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 1.5rem; }
-    .progress-fill { height: 3px; background: var(--green); border-radius: 2px; transition: width 0.35s ease; }
+    /* Progress */
+    .progress-wrap { height:3px; background:var(--bg2); border-radius:2px; margin-bottom:1.5rem; }
+    .progress-fill { height:3px; background:var(--green); border-radius:2px; transition:width 0.35s ease; }
 
-    /* --- Step indicator --- */
-    .step-row { display: flex; align-items: center; gap: 6px; margin-bottom: 1rem; }
-    .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background 0.2s; }
-    .step-dot.done { background: var(--green); }
-    .step-dot.active { background: var(--text); }
-    .step-text { font-size: 12px; color: var(--text2); margin-left: 4px; }
+    /* Steps */
+    .step-row { display:flex; align-items:center; gap:6px; margin-bottom:1rem; }
+    .step-dot { width:8px; height:8px; border-radius:50%; background:var(--bg3); flex-shrink:0; transition:background 0.2s; }
+    .step-dot.done { background:var(--green); }
+    .step-dot.active { background:var(--text); }
+    .step-text { font-size:12px; color:var(--text2); margin-left:4px; }
 
-    /* --- Back button --- */
+    /* Back */
     .back-btn {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 14px; color: var(--text2);
-      cursor: pointer; background: none; border: none;
-      font-family: inherit; padding: 0; margin-bottom: 1rem;
-      -webkit-tap-highlight-color: transparent;
+      display:flex; align-items:center; gap:6px; font-size:14px; color:var(--text2);
+      cursor:pointer; background:none; border:none; font-family:var(--font);
+      padding:0; margin-bottom:1rem; -webkit-tap-highlight-color:transparent;
     }
-    .back-btn:hover { color: var(--text); }
+    .back-btn:hover { color:var(--text); }
 
-    /* --- Exercise chips --- */
-    .chips-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+    /* Chips */
+    .chips-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px; }
     .ex-chip {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 7px 13px;
-      border-radius: 999px;
-      border: 0.5px solid var(--border2);
-      background: var(--bg);
-      cursor: pointer;
-      font-size: 13px; color: var(--text);
-      transition: all 0.15s;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
+      display:inline-flex; align-items:center; gap:6px;
+      padding:7px 13px; border-radius:999px;
+      border:1.5px solid var(--border2); background:var(--surface);
+      cursor:pointer; font-size:13px; color:var(--text);
+      transition:all 0.15s; user-select:none;
+      -webkit-tap-highlight-color:transparent;
     }
-    .ex-chip.selected { background: var(--green-bg); border-color: var(--green); color: var(--green-text); }
+    .ex-chip.selected { background:var(--green-lt); border-color:var(--green); color:var(--green-tx); }
     .chip-check {
-      width: 14px; height: 14px; border-radius: 50%;
-      border: 1.5px solid var(--border2); flex-shrink: 0;
-      transition: all 0.15s;
+      width:14px; height:14px; border-radius:50%;
+      border:1.5px solid var(--border2); flex-shrink:0; transition:all 0.15s;
     }
-    .ex-chip.selected .chip-check { background: var(--green); border-color: var(--green); }
+    .ex-chip.selected .chip-check { background:var(--green); border-color:var(--green); }
 
-    /* --- Exercise entries --- */
+    /* Exercise entries */
     .ex-entry {
-      background: var(--bg);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-lg);
-      margin-bottom: 8px;
-      overflow: hidden;
+      background:var(--surface); border:1.5px solid var(--border);
+      border-radius:var(--radius-lg); margin-bottom:8px; overflow:hidden;
+      transition:border-color 0.15s;
     }
+    .ex-entry:has(.ex-body.open) { border-color:var(--green); }
     .ex-entry-hdr {
-      padding: 12px 14px;
-      display: flex; align-items: center; justify-content: space-between;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
+      padding:13px 14px; display:flex; align-items:center; justify-content:space-between;
+      cursor:pointer; -webkit-tap-highlight-color:transparent;
     }
-    .ex-entry-hdr:hover { background: var(--bg2); }
-    .ex-entry-hdr:active { background: var(--bg3); }
-    .ex-left { display: flex; align-items: center; gap: 10px; }
-    .ex-name { font-size: 14px; font-weight: 500; }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background 0.2s; }
-    .status-dot.ok { background: var(--green); }
-    .chevron { font-size: 16px; color: var(--text3); transition: transform 0.2s; line-height: 1; }
-    .chevron.open { transform: rotate(90deg); }
-    .ex-body {
-      display: none;
-      padding: 10px 14px 14px;
-      border-top: 0.5px solid var(--border);
-    }
-    .ex-body.open { display: block; }
-    .fields-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin-bottom: 8px; }
+    .ex-entry-hdr:hover { background:var(--bg); }
+    .ex-left { display:flex; align-items:center; gap:10px; }
+    .ex-name { font-size:14px; font-weight:500; }
+    .status-dot { width:8px; height:8px; border-radius:50%; background:var(--bg3); flex-shrink:0; transition:background 0.2s; }
+    .status-dot.ok { background:var(--green); }
+    .chevron { font-size:16px; color:var(--text3); transition:transform 0.2s; line-height:1; }
+    .chevron.open { transform:rotate(90deg); }
+    .ex-body { display:none; padding:10px 14px 14px; border-top:1.5px solid var(--border); background:var(--bg); }
+    .ex-body.open { display:block; }
+    .fields-3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:8px; }
 
-    /* --- Summary --- */
+    /* Summary */
     .summary-row {
-      display: flex; justify-content: space-between; align-items: baseline;
-      padding: 9px 0; border-bottom: 0.5px solid var(--border);
-      font-size: 13px;
+      display:flex; justify-content:space-between; align-items:baseline;
+      padding:9px 0; border-bottom:1px solid var(--border); font-size:13px;
     }
-    .summary-row:last-child { border-bottom: none; }
-    .sum-name { font-weight: 500; }
-    .sum-vals { color: var(--text2); font-size: 12px; }
+    .summary-row:last-child { border-bottom:none; }
+    .sum-name { font-weight:500; }
+    .sum-vals { color:var(--text2); font-size:12px; font-family:var(--mono); }
 
-    /* --- Avatar --- */
+    /* Avatar */
     .avatar {
-      width: 48px; height: 48px; border-radius: 50%;
-      background: var(--green-bg); color: var(--green-text);
-      font-size: 18px; font-weight: 600;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
+      width:48px; height:48px; border-radius:50%;
+      background:var(--green); color:#fff;
+      font-size:16px; font-weight:600;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
     }
 
-    /* --- History --- */
-    .history-chip {
-      background: var(--bg2);
-      border-radius: var(--radius);
-      padding: 10px 12px;
-      margin-bottom: 6px;
-      border: 0.5px solid transparent;
-      cursor: pointer;
-      transition: border-color 0.15s;
+    /* History */
+    .history-card {
+      background:var(--bg); border:1.5px solid var(--border);
+      border-radius:var(--radius-lg); margin-bottom:8px; overflow:hidden;
     }
-    .history-chip:hover { border-color: var(--border2); }
-    .history-chip strong { font-size: 13px; display: block; }
-    .history-chip span { font-size: 12px; color: var(--text2); }
+    .history-card-hdr {
+      padding:11px 14px; display:flex; align-items:center; justify-content:space-between;
+      cursor:pointer; -webkit-tap-highlight-color:transparent;
+    }
+    .history-card-hdr:hover { background:var(--bg2); }
+    .history-card-body { display:none; padding:0 14px 12px; }
+    .history-card-body.open { display:block; }
+    .history-ex-row { font-size:12px; padding:5px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; }
+    .history-ex-row:last-child { border-bottom:none; }
 
-    /* --- Success icon --- */
+    /* Status banner */
+    .status-banner {
+      padding:10px 14px; border-radius:var(--radius); font-size:13px;
+      margin-bottom:12px; display:none; text-align:center; font-weight:500;
+    }
+    .status-banner.show { display:block; }
+    .status-banner.loading { background:var(--bg2); color:var(--text2); }
+    .status-banner.ok   { background:var(--green-lt); color:var(--green-tx); }
+    .status-banner.err  { background:var(--accent-lt); color:var(--accent); }
+
+    /* Success */
     .success-icon {
-      width: 60px; height: 60px; border-radius: 50%;
-      background: var(--green-bg);
-      margin: 0 auto 1rem;
-      display: flex; align-items: center; justify-content: center;
+      width:64px; height:64px; border-radius:50%; background:var(--green);
+      margin:0 auto 1rem;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 6px 20px rgba(26,122,88,0.30);
     }
-    .success-icon svg { stroke: var(--green); stroke-width: 2.5; fill: none; }
+    .success-icon svg { stroke:#fff; stroke-width:2.5; fill:none; }
 
-    /* --- Toast --- */
-    .toast {
-      background: var(--text); color: var(--bg);
-      padding: 10px 16px; border-radius: var(--radius);
-      font-size: 13px; text-align: center;
-      margin-top: 12px; display: none;
+    /* Card */
+    .card { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius-lg); padding:1rem 1.25rem; margin-bottom:12px; }
+
+    /* Spinner */
+    .spinner {
+      display:inline-block; width:14px; height:14px;
+      border:2px solid var(--border2); border-top-color:var(--green);
+      border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:6px;
     }
-    .toast.show { display: block; }
-    .toast.err { background: var(--red-bg); color: var(--red-text); border: 0.5px solid var(--red-text); }
+    @keyframes spin { to { transform:rotate(360deg); } }
 
-    /* --- Name input row --- */
-    .name-wrap { margin: 1.5rem 0; }
-    .name-wrap label.field-label { font-size: 14px; margin-bottom: 8px; }
+    /* Tabs */
+    .tabs { display:flex; border-bottom:1.5px solid var(--border); margin-bottom:1.25rem; }
+    .tab-btn {
+      flex:1; font-size:13px; font-weight:500; padding:10px 8px;
+      border:none; background:none; color:var(--text2); cursor:pointer;
+      border-bottom:2.5px solid transparent; margin-bottom:-1.5px;
+      font-family:var(--font); transition:all 0.15s;
+    }
+    .tab-btn.active { color:var(--green); border-bottom-color:var(--green); }
+    .tab-pane { display:none; }
+    .tab-pane.active { display:block; }
   </style>
 </head>
 <body>
-<div class="app" id="app">
+<div class="app">
 
-  <!-- ======= PANTALLA: LOGIN ======= -->
+  <!-- ── CONFIG: pega aquí tu URL de Apps Script ── -->
+  <script>
+    // ⚠️ IMPORTANTE: sustituye esta URL por la tuya tras desplegar el Apps Script
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTzQGu1Pz92xB7c2-eksIhWj7gLSMvyoZabNiTFqCUrNVvwpOsmyuC8rsH-2eQZFrZTw/exec";
+  </script>
+
+  <!-- ===== PANTALLA: LOGIN ===== -->
   <div class="screen active" id="s-login">
     <div class="logo-bar">
       <div class="logo-icon">
-        <svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        <svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
       </div>
       <h1>Mi entrenamiento</h1>
       <p>Registra tu sesión de hoy</p>
     </div>
 
-    <div class="name-wrap">
+    <div style="margin-bottom:1.25rem;">
       <label class="field-label" for="client-name">¿Cuál es tu nombre?</label>
       <input type="text" id="client-name" placeholder="Escribe tu nombre..." autocomplete="given-name" />
     </div>
 
-    <div id="history-section" style="display:none; margin-bottom:1rem;">
-      <div class="section-label">Tus últimas sesiones</div>
-      <div id="history-list"></div>
-    </div>
-
-    <button class="btn btn-primary" onclick="startSession()">Empezar nueva sesión</button>
-    <div class="toast" id="toast-login"></div>
+    <button class="btn btn-primary" onclick="loginCliente()">Entrar</button>
+    <div class="status-banner" id="banner-login"></div>
   </div>
 
-  <!-- ======= PANTALLA: SELECCIONAR EJERCICIOS ======= -->
-  <div class="screen" id="s-select">
-    <button class="back-btn" onclick="goTo('s-login')">&#8592; Volver</button>
-    <div class="progress-wrap"><div class="progress-fill" style="width:33%"></div></div>
-    <div class="step-row">
-      <div class="step-dot done"></div>
-      <div class="step-dot active"></div>
-      <div class="step-dot"></div>
-      <span class="step-text">Paso 1 de 2 — Elige tus ejercicios</span>
-    </div>
-    <p style="font-size:14px;color:var(--text2);margin-bottom:1rem;">Toca los ejercicios que has hecho hoy.</p>
-    <div id="chips-container"></div>
-    <div class="btn-row">
-      <button class="btn btn-sm" onclick="selectAll()">Seleccionar todos</button>
-      <button class="btn btn-sm btn-ghost" onclick="clearAll()">Limpiar</button>
-      <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="goToRegister()">Continuar ›</button>
-    </div>
-    <div class="toast" id="toast-select"></div>
-  </div>
+  <!-- ===== PANTALLA: PANEL CLIENTE ===== -->
+  <div class="screen" id="s-panel">
 
-  <!-- ======= PANTALLA: REGISTRAR DATOS ======= -->
-  <div class="screen" id="s-register">
-    <button class="back-btn" onclick="goTo('s-select')">&#8592; Cambiar ejercicios</button>
-    <div class="progress-wrap"><div class="progress-fill" style="width:66%"></div></div>
-    <div class="step-row">
-      <div class="step-dot done"></div>
-      <div class="step-dot done"></div>
-      <div class="step-dot active"></div>
-      <span class="step-text">Paso 2 de 2 — Introduce los datos</span>
-    </div>
-    <div id="register-container"></div>
-    <div style="margin-top:1rem;">
-      <label class="field-label" style="margin-bottom:6px;">Observaciones generales de la sesión</label>
-      <textarea id="obs-general" placeholder="¿Cómo te has sentido? ¿Algo a destacar?"></textarea>
-    </div>
-    <div style="margin-top:1rem;">
-      <button class="btn btn-success" onclick="submitSession()">Enviar sesión ✓</button>
-    </div>
-    <div class="toast" id="toast-register"></div>
-  </div>
-
-  <!-- ======= PANTALLA: CONFIRMACIÓN ======= -->
-  <div class="screen" id="s-confirm">
-    <div style="text-align:center;padding:2rem 0 1.25rem;">
-      <div class="success-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="avatar" id="panel-avatar"></div>
+        <div>
+          <p style="font-weight:600;font-size:16px;" id="panel-nombre"></p>
+          <p style="font-size:12px;color:var(--text2);">Panel de entrenamiento</p>
+        </div>
       </div>
-      <h1 style="font-size:22px;font-weight:600;letter-spacing:-0.3px;margin-bottom:6px;">¡Sesión registrada!</h1>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Salir</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('nueva')" id="tab-nueva">Nueva sesión</button>
+      <button class="tab-btn" onclick="showTab('historial')" id="tab-historial">Mi historial</button>
+    </div>
+
+    <!-- TAB: NUEVA SESIÓN -->
+    <div class="tab-pane active" id="pane-nueva">
+
+      <!-- Paso 1: elegir ejercicios -->
+      <div id="paso-1">
+        <div class="progress-wrap"><div class="progress-fill" style="width:50%"></div></div>
+        <div class="step-row">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+          <span class="step-text">Paso 1 — Elige los ejercicios de hoy</span>
+        </div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Toca los que has hecho en esta sesión.</p>
+        <div id="chips-container"></div>
+        <div class="btn-row">
+          <button class="btn btn-sm" onclick="selectAll()">Todos</button>
+          <button class="btn btn-sm btn-ghost" onclick="clearAll()">Limpiar</button>
+          <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="goToRegister()">Continuar ›</button>
+        </div>
+        <div class="status-banner" id="banner-chips"></div>
+      </div>
+
+      <!-- Paso 2: registrar datos -->
+      <div id="paso-2" style="display:none;">
+        <div class="progress-wrap"><div class="progress-fill" style="width:100%"></div></div>
+        <div class="step-row">
+          <div class="step-dot done"></div>
+          <div class="step-dot active"></div>
+          <span class="step-text">Paso 2 — Introduce los datos</span>
+        </div>
+        <div id="register-container"></div>
+        <div style="margin-top:1rem;">
+          <label class="field-label">Observaciones generales</label>
+          <textarea id="obs-general" placeholder="¿Cómo te has sentido hoy?"></textarea>
+        </div>
+        <div style="margin-top:1rem;display:flex;gap:8px;">
+          <button class="btn btn-sm btn-ghost" onclick="volverPaso1()">‹ Cambiar ejercicios</button>
+          <button class="btn btn-green" style="flex:1;" onclick="submitSession()">Enviar sesión ✓</button>
+        </div>
+        <div class="status-banner" id="banner-submit"></div>
+      </div>
+
+    </div>
+
+    <!-- TAB: HISTORIAL -->
+    <div class="tab-pane" id="pane-historial">
+      <div class="status-banner" id="banner-historial"></div>
+      <div id="historial-container">
+        <p style="font-size:13px;color:var(--text2);">Cargando tu historial...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== PANTALLA: CONFIRMACIÓN ===== -->
+  <div class="screen" id="s-confirm">
+    <div style="text-align:center;padding:2rem 0 1.5rem;">
+      <div class="success-icon">
+        <svg width="30" height="30" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h1 style="font-size:22px;font-weight:600;letter-spacing:-0.4px;margin-bottom:6px;">¡Sesión guardada!</h1>
       <p id="confirm-sub" style="font-size:14px;color:var(--text2);"></p>
     </div>
-
     <div class="card">
       <div id="confirm-header" style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"></div>
       <div id="summary-rows"></div>
-      <p id="confirm-obs" style="font-size:12px;color:var(--text2);margin-top:10px;"></p>
+      <p id="confirm-obs" style="font-size:12px;color:var(--text2);margin-top:10px;display:none;"></p>
     </div>
-
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:1rem;">
-      <button class="btn btn-primary" onclick="newSession()">Nueva sesión</button>
-      <button class="btn" onclick="exportCSV()">Descargar mis datos (CSV)</button>
+      <button class="btn btn-primary" onclick="nuevaSesion()">Nueva sesión</button>
+      <button class="btn" onclick="verHistorial()">Ver mi historial</button>
     </div>
   </div>
 
-</div>
+</div><!-- /app -->
 
 <script>
+// ──────────────────────────────────────────────
+// EJERCICIOS
+// ──────────────────────────────────────────────
 const EXERCISES = [
-  {id:'peso-muerto',     nombre:'Peso muerto',              cat:'Piernas'},
-  {id:'sent-bulg',       nombre:'Sentadillas búlgaras',     cat:'Piernas'},
-  {id:'sent-norm',       nombre:'Sentadillas normales',     cat:'Piernas'},
-  {id:'aductores',       nombre:'Aductores',                cat:'Piernas'},
-  {id:'abductores',      nombre:'Abductores',               cat:'Piernas'},
-  {id:'hip-thrusts',     nombre:'Hip thrusts (pelvis)',     cat:'Glúteos'},
-  {id:'press-h-manc',    nombre:'Press hombro (mancuernas)',cat:'Hombros'},
-  {id:'press-h-maq',     nombre:'Press hombro (máquina)',   cat:'Hombros'},
-  {id:'jalones',         nombre:'Jalones en polea',         cat:'Espalda'},
-  {id:'remo-polea',      nombre:'Remo en polea',            cat:'Espalda'},
-  {id:'remo-maq',        nombre:'Remo en máquina',          cat:'Espalda'},
-  {id:'press-banca',     nombre:'Press de banca',           cat:'Pecho'},
-  {id:'press-banca-maq', nombre:'Press banca (máquina)',    cat:'Pecho'},
-  {id:'curl-biceps',     nombre:'Curl de bíceps',           cat:'Brazos'},
-  {id:'triceps',         nombre:'Tríceps',                  cat:'Brazos'},
-  {id:'escap-polea',     nombre:'Escápulas (en polea)',     cat:'Escápulas'},
-  {id:'escap-barra',     nombre:'Escápulas (colgada barra)',cat:'Escápulas'},
+  {id:'peso-muerto',     nombre:'Peso muerto',               cat:'Piernas'},
+  {id:'sent-bulg',       nombre:'Sentadillas búlgaras',      cat:'Piernas'},
+  {id:'sent-norm',       nombre:'Sentadillas normales',      cat:'Piernas'},
+  {id:'aductores',       nombre:'Aductores',                 cat:'Piernas'},
+  {id:'abductores',      nombre:'Abductores',                cat:'Piernas'},
+  {id:'hip-thrusts',     nombre:'Hip thrusts (pelvis)',      cat:'Glúteos'},
+  {id:'press-h-manc',    nombre:'Press hombro (mancuernas)', cat:'Hombros'},
+  {id:'press-h-maq',     nombre:'Press hombro (máquina)',    cat:'Hombros'},
+  {id:'jalones',         nombre:'Jalones en polea',          cat:'Espalda'},
+  {id:'remo-polea',      nombre:'Remo en polea',             cat:'Espalda'},
+  {id:'remo-maq',        nombre:'Remo en máquina',           cat:'Espalda'},
+  {id:'press-banca',     nombre:'Press de banca',            cat:'Pecho'},
+  {id:'press-banca-maq', nombre:'Press banca (máquina)',     cat:'Pecho'},
+  {id:'curl-biceps',     nombre:'Curl de bíceps',            cat:'Brazos'},
+  {id:'triceps',         nombre:'Tríceps',                   cat:'Brazos'},
+  {id:'escap-polea',     nombre:'Escápulas (en polea)',      cat:'Escápulas'},
+  {id:'escap-barra',     nombre:'Escápulas (colgada barra)', cat:'Escápulas'},
 ];
 
-let sessions = JSON.parse(localStorage.getItem('pt_sessions') || '[]');
+// ──────────────────────────────────────────────
+// ESTADO
+// ──────────────────────────────────────────────
 let clientName = '';
-let selected = new Set();
-let openEntry = null;
+let selected   = new Set();
+let openEntry  = null;
+let openHCard  = null;
 
+// ──────────────────────────────────────────────
+// NAVEGACIÓN
+// ──────────────────────────────────────────────
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  window.scrollTo(0, 0);
+  window.scrollTo(0,0);
 }
 
-function toast(id, msg, err = false) {
-  const t = document.getElementById(id);
-  t.textContent = msg;
-  t.className = 'toast show' + (err ? ' err' : '');
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.className = 'toast', 3000);
+function showTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'   + name).classList.add('active');
+  document.getElementById('pane-'  + name).classList.add('active');
+  if (name === 'historial') cargarHistorial();
 }
 
-function initials(n) {
-  return n.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+function banner(id, msg, type='loading') {
+  const el = document.getElementById(id);
+  el.innerHTML = type === 'loading'
+    ? `<span class="spinner"></span>${msg}`
+    : msg;
+  el.className = `status-banner show ${type}`;
+  if (type !== 'loading') setTimeout(() => el.classList.remove('show'), 4000);
 }
+function hideBanner(id) { document.getElementById(id).classList.remove('show'); }
 
-/* ---- LOGIN ---- */
-function startSession() {
-  clientName = document.getElementById('client-name').value.trim();
-  if (!clientName) { toast('toast-login', 'Por favor escribe tu nombre', true); return; }
-  renderHistory();
+function initials(n) { return n.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function genId()      { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+
+// ──────────────────────────────────────────────
+// LOGIN
+// ──────────────────────────────────────────────
+function loginCliente() {
+  const val = document.getElementById('client-name').value.trim();
+  if (!val) { banner('banner-login','Por favor escribe tu nombre','err'); return; }
+  clientName = val;
+  document.getElementById('panel-nombre').textContent = clientName;
+  document.getElementById('panel-avatar').textContent = initials(clientName);
+  selected.clear();
   renderChips();
-  goTo('s-select');
+  showTab('nueva');
+  goTo('s-panel');
 }
 
-function renderHistory() {
-  const mine = sessions.filter(s => s.cliente === clientName);
-  const sec = document.getElementById('history-section');
-  if (!mine.length) { sec.style.display = 'none'; return; }
-  sec.style.display = 'block';
-  document.getElementById('history-list').innerHTML = mine.slice(0, 3).map(s => `
-    <div class="history-chip">
-      <strong>${s.fecha}</strong>
-      <span>${s.ejercicios.length} ejercicios · ${s.tipo || 'Entrenamiento'}</span>
-    </div>
-  `).join('');
+function logout() {
+  clientName = '';
+  document.getElementById('client-name').value = '';
+  goTo('s-login');
 }
 
-/* ---- CHIP SELECTION ---- */
+document.getElementById('client-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loginCliente();
+});
+
+// ──────────────────────────────────────────────
+// PASO 1: CHIPS
+// ──────────────────────────────────────────────
 function renderChips() {
   const cats = [...new Set(EXERCISES.map(e => e.cat))];
   let html = '';
@@ -447,9 +452,8 @@ function renderChips() {
     html += `<div class="section-label">${cat}</div><div class="chips-wrap">`;
     EXERCISES.filter(e => e.cat === cat).forEach(ex => {
       const sel = selected.has(ex.id);
-      html += `<div class="ex-chip${sel ? ' selected' : ''}" id="chip-${ex.id}" onclick="toggleChip('${ex.id}')">
-        <span class="chip-check"></span>${ex.nombre}
-      </div>`;
+      html += `<div class="ex-chip${sel?' selected':''}" id="chip-${ex.id}" onclick="toggleChip('${ex.id}')">
+        <span class="chip-check"></span>${ex.nombre}</div>`;
     });
     html += '</div>';
   });
@@ -458,21 +462,31 @@ function renderChips() {
 
 function toggleChip(id) {
   selected.has(id) ? selected.delete(id) : selected.add(id);
-  const chip = document.getElementById('chip-' + id);
+  const chip = document.getElementById('chip-'+id);
   chip.classList.toggle('selected', selected.has(id));
 }
 function selectAll() { EXERCISES.forEach(e => selected.add(e.id)); renderChips(); }
 function clearAll()  { selected.clear(); renderChips(); }
 
-/* ---- REGISTER ---- */
+// ──────────────────────────────────────────────
+// PASO 2: REGISTRO
+// ──────────────────────────────────────────────
 function goToRegister() {
-  if (!selected.size) { toast('toast-select', 'Selecciona al menos un ejercicio', true); return; }
+  if (!selected.size) { banner('banner-chips','Selecciona al menos un ejercicio','err'); return; }
+  hideBanner('banner-chips');
   renderEntries();
-  goTo('s-register');
+  document.getElementById('paso-1').style.display = 'none';
+  document.getElementById('paso-2').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function volverPaso1() {
+  document.getElementById('paso-2').style.display = 'none';
+  document.getElementById('paso-1').style.display = 'block';
 }
 
 function renderEntries() {
-  const sel = EXERCISES.filter(e => selected.has(e.id));
+  const sel  = EXERCISES.filter(e => selected.has(e.id));
   const cats = [...new Set(sel.map(e => e.cat))];
   let html = '';
   cats.forEach(cat => {
@@ -489,23 +503,19 @@ function renderEntries() {
         </div>
         <div class="ex-body" id="body-${ex.id}">
           <div class="fields-3">
-            <div>
-              <label class="field-label">Peso (kg)</label>
-              <input type="number" id="p-${ex.id}" placeholder="0" min="0" step="0.5" inputmode="decimal" onchange="checkDot('${ex.id}')" oninput="checkDot('${ex.id}')" />
-            </div>
-            <div>
-              <label class="field-label">Series</label>
-              <input type="number" id="s-${ex.id}" placeholder="0" min="0" inputmode="numeric" onchange="checkDot('${ex.id}')" oninput="checkDot('${ex.id}')" />
-            </div>
-            <div>
-              <label class="field-label">Repeticiones</label>
-              <input type="number" id="r-${ex.id}" placeholder="0" min="0" inputmode="numeric" onchange="checkDot('${ex.id}')" oninput="checkDot('${ex.id}')" />
-            </div>
+            <div><label class="field-label">Peso (kg)</label>
+              <input type="number" id="p-${ex.id}" placeholder="0" min="0" step="0.5" inputmode="decimal"
+                oninput="checkDot('${ex.id}')"/></div>
+            <div><label class="field-label">Series</label>
+              <input type="number" id="s-${ex.id}" placeholder="0" min="0" inputmode="numeric"
+                oninput="checkDot('${ex.id}')"/></div>
+            <div><label class="field-label">Reps</label>
+              <input type="number" id="r-${ex.id}" placeholder="0" min="0" inputmode="numeric"
+                oninput="checkDot('${ex.id}')"/></div>
           </div>
-          <div>
-            <label class="field-label">Observaciones</label>
-            <textarea id="o-${ex.id}" placeholder="Sensaciones, dificultad, notas..." oninput="checkDot('${ex.id}')"></textarea>
-          </div>
+          <div><label class="field-label">Observaciones</label>
+            <textarea id="o-${ex.id}" placeholder="Sensaciones, dificultad..."
+              oninput="checkDot('${ex.id}')"></textarea></div>
         </div>
       </div>`;
     });
@@ -517,17 +527,17 @@ function renderEntries() {
 
 function toggleEntry(id) {
   if (openEntry && openEntry !== id) {
-    document.getElementById('body-' + openEntry)?.classList.remove('open');
-    document.getElementById('chev-' + openEntry)?.classList.remove('open');
+    document.getElementById('body-'+openEntry)?.classList.remove('open');
+    document.getElementById('chev-'+openEntry)?.classList.remove('open');
   }
   openEntry = id;
-  document.getElementById('body-' + id)?.classList.toggle('open');
-  document.getElementById('chev-' + id)?.classList.toggle('open');
+  document.getElementById('body-'+id)?.classList.toggle('open');
+  document.getElementById('chev-'+id)?.classList.toggle('open');
 }
 
 function checkDot(id) {
   const filled = ['p','s','r','o'].some(f => document.getElementById(f+'-'+id)?.value?.trim());
-  const dot = document.getElementById('dot-' + id);
+  const dot = document.getElementById('dot-'+id);
   if (dot) dot.className = 'status-dot' + (filled ? ' ok' : '');
 }
 
@@ -540,86 +550,207 @@ function getData(id) {
   };
 }
 
-/* ---- SUBMIT ---- */
-function submitSession() {
+// ──────────────────────────────────────────────
+// ENVÍO — guarda en Sheets y localmente
+// ──────────────────────────────────────────────
+async function submitSession() {
   const sel = EXERCISES.filter(e => selected.has(e.id));
   const ejercicios = sel.map(ex => ({ ...ex, ...getData(ex.id) }));
-  const fecha = new Date().toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const fecha = new Date().toLocaleDateString('es-ES', {day:'2-digit',month:'2-digit',year:'numeric'});
+
   const session = {
-    id: Date.now().toString(36),
-    cliente: clientName,
+    id:         genId(),
+    cliente:    clientName,
     fecha,
-    tipo: 'Entrenamiento',
+    tipo:       'Entrenamiento',
     obsGeneral: document.getElementById('obs-general').value.trim(),
     ejercicios,
-    createdAt: Date.now()
+    createdAt:  Date.now()
   };
-  sessions.unshift(session);
-  try { localStorage.setItem('pt_sessions', JSON.stringify(sessions)); } catch(e) {}
-  renderConfirm(session);
+
+  // Guardar localmente siempre (por si falla la red)
+  guardarLocal(session);
+
+  // Enviar a Google Sheets
+  banner('banner-submit', 'Guardando sesión...', 'loading');
+
+  if (SCRIPT_URL === 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
+    // Sin URL configurada: solo local
+    hideBanner('banner-submit');
+    mostrarConfirmacion(session);
+    return;
+  }
+
+  try {
+    const resp = await fetch(SCRIPT_URL, {
+      method:  'POST',
+      headers: {'Content-Type':'application/json'},
+      body:    JSON.stringify({ action:'guardar', session })
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      hideBanner('banner-submit');
+    } else {
+      banner('banner-submit', '⚠️ Guardado localmente. Sin conexión con Sheets.', 'err');
+    }
+  } catch(e) {
+    banner('banner-submit', '⚠️ Sin conexión. Datos guardados en el dispositivo.', 'err');
+  }
+
+  mostrarConfirmacion(session);
+}
+
+// ──────────────────────────────────────────────
+// LOCAL STORAGE (respaldo)
+// ──────────────────────────────────────────────
+function guardarLocal(session) {
+  const key = 'pt_sessions_' + clientName;
+  const arr = JSON.parse(localStorage.getItem(key) || '[]');
+  arr.unshift(session);
+  try { localStorage.setItem(key, JSON.stringify(arr.slice(0,50))); } catch(e) {}
+}
+
+function getLocal() {
+  const key = 'pt_sessions_' + clientName;
+  return JSON.parse(localStorage.getItem(key) || '[]');
+}
+
+// ──────────────────────────────────────────────
+// CONFIRMACIÓN
+// ──────────────────────────────────────────────
+function mostrarConfirmacion(s) {
+  const filled = s.ejercicios.filter(e => e.peso || e.series || e.reps || e.obs);
+  document.getElementById('confirm-sub').textContent = `${s.fecha} · ${s.cliente} · ${filled.length} ejercicios`;
+  document.getElementById('confirm-header').innerHTML = `
+    <div class="avatar">${initials(s.cliente)}</div>
+    <div><p style="font-weight:600;font-size:15px;">${s.cliente}</p>
+         <p style="font-size:12px;color:var(--text2);">${s.fecha}</p></div>`;
+  document.getElementById('summary-rows').innerHTML = filled.map(e => {
+    const parts = [];
+    if (e.peso)   parts.push(e.peso+' kg');
+    if (e.series) parts.push(e.series+' series');
+    if (e.reps)   parts.push(e.reps+' reps');
+    return `<div class="summary-row">
+      <span class="sum-name">${e.nombre}</span>
+      <span class="sum-vals">${parts.join(' · ')||'—'}</span></div>`;
+  }).join('');
+  const obsEl = document.getElementById('confirm-obs');
+  if (s.obsGeneral) { obsEl.textContent = s.obsGeneral; obsEl.style.display='block'; }
+  else obsEl.style.display='none';
   goTo('s-confirm');
 }
 
-/* ---- CONFIRM ---- */
-function renderConfirm(s) {
-  document.getElementById('confirm-sub').textContent =
-    `${s.fecha} · ${s.cliente} · ${s.ejercicios.length} ejercicios`;
-
-  document.getElementById('confirm-header').innerHTML = `
-    <div class="avatar">${initials(s.cliente)}</div>
-    <div>
-      <p style="font-weight:600;font-size:15px;">${s.cliente}</p>
-      <p style="font-size:12px;color:var(--text2);">${s.fecha}</p>
-    </div>`;
-
-  const filled = s.ejercicios.filter(e => e.peso || e.series || e.reps || e.obs);
-  document.getElementById('summary-rows').innerHTML = filled.map(e => {
-    const parts = [];
-    if (e.peso)   parts.push(e.peso + ' kg');
-    if (e.series) parts.push(e.series + ' series');
-    if (e.reps)   parts.push(e.reps + ' reps');
-    return `<div class="summary-row">
-      <span class="sum-name">${e.nombre}</span>
-      <span class="sum-vals">${parts.join(' · ') || '—'}</span>
-    </div>`;
-  }).join('');
-
-  const obs = document.getElementById('confirm-obs');
-  obs.textContent = s.obsGeneral || '';
-  obs.style.display = s.obsGeneral ? 'block' : 'none';
-}
-
-function newSession() {
+function nuevaSesion() {
   selected.clear();
   openEntry = null;
   document.getElementById('obs-general').value = '';
-  renderHistory();
-  goTo('s-login');
+  document.getElementById('paso-2').style.display = 'none';
+  document.getElementById('paso-1').style.display = 'block';
+  renderChips();
+  showTab('nueva');
+  goTo('s-panel');
 }
 
-/* ---- CSV EXPORT ---- */
-function exportCSV() {
-  const mine = sessions.filter(s => s.cliente === clientName);
-  if (!mine.length) return;
-  const rows = [['Fecha','Cliente','Ejercicio','Categoría','Peso (kg)','Series','Repeticiones','Observaciones','Obs. general']];
-  mine.forEach(s => s.ejercicios.forEach(e => {
-    rows.push([s.fecha, s.cliente, e.nombre, e.cat, e.peso, e.series, e.reps, e.obs, s.obsGeneral]
-      .map(v => `"${(v||'').toString().replace(/"/g,'""')}"`));
-  }));
-  const csv = '\uFEFF' + rows.map(r => r.join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `entrenamiento_${clientName.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+function verHistorial() {
+  showTab('historial');
+  goTo('s-panel');
 }
 
-/* ---- Init ---- */
-document.getElementById('client-name').addEventListener('keydown', e => {
-  if (e.key === 'Enter') startSession();
-});
+// ──────────────────────────────────────────────
+// HISTORIAL
+// ──────────────────────────────────────────────
+async function cargarHistorial() {
+  const cont = document.getElementById('historial-container');
+  banner('banner-historial','Cargando tu historial...','loading');
+  cont.innerHTML = '';
+
+  // Intentar cargar desde Sheets
+  if (SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
+    try {
+      const url = `${SCRIPT_URL}?action=historial&cliente=${encodeURIComponent(clientName)}`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+      if (data.ok && data.sesiones.length) {
+        hideBanner('banner-historial');
+        renderHistorial(data.sesiones, 'Google Sheets');
+        return;
+      }
+    } catch(e) { /* fallback a local */ }
+  }
+
+  // Fallback: datos locales
+  const local = getLocal();
+  hideBanner('banner-historial');
+  if (!local.length) {
+    cont.innerHTML = '<p style="font-size:13px;color:var(--text2);">Aún no tienes sesiones registradas.</p>';
+    return;
+  }
+  renderHistorial(local, 'dispositivo');
+}
+
+function renderHistorial(sesiones, fuente) {
+  const cont = document.getElementById('historial-container');
+
+  const stats = calcularStats(sesiones);
+  cont.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem;">
+      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;">
+        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;">Sesiones</div>
+        <div style="font-size:22px;font-weight:600;margin-top:2px;">${sesiones.length}</div>
+      </div>
+      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;">
+        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;">Ejercicios</div>
+        <div style="font-size:22px;font-weight:600;margin-top:2px;">${stats.totalEj}</div>
+      </div>
+      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;">
+        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;">Última</div>
+        <div style="font-size:13px;font-weight:600;margin-top:4px;">${sesiones[0]?.fecha||'—'}</div>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--text3);margin-bottom:10px;">Fuente: ${fuente}</p>
+    ${sesiones.map((s,i) => {
+      const filled = (s.ejercicios||[]).filter(e => e.peso||e.series||e.reps||e.obs);
+      return `
+      <div class="history-card">
+        <div class="history-card-hdr" onclick="toggleHCard('hc-${i}')">
+          <div>
+            <p style="font-weight:500;font-size:14px;">${s.fecha}</p>
+            <p style="font-size:12px;color:var(--text2);">${filled.length} ejercicios registrados</p>
+          </div>
+          <span class="chevron" id="chev-hc-${i}">›</span>
+        </div>
+        <div class="history-card-body" id="hc-${i}">
+          ${filled.map(e => {
+            const parts=[];
+            if(e.peso)   parts.push(e.peso+' kg');
+            if(e.series) parts.push(e.series+' series');
+            if(e.reps)   parts.push(e.reps+' reps');
+            return `<div class="history-ex-row">
+              <span style="font-weight:500;">${e.nombre}</span>
+              <span style="color:var(--text2);font-family:var(--mono);font-size:12px;">${parts.join(' · ')||'—'}</span>
+            </div>`;
+          }).join('')}
+          ${s.obsGeneral ? `<p style="font-size:12px;color:var(--text2);margin-top:8px;font-style:italic;">${s.obsGeneral}</p>` : ''}
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+function toggleHCard(id) {
+  if (openHCard && openHCard !== id) {
+    document.getElementById(openHCard)?.classList.remove('open');
+    document.getElementById('chev-'+openHCard)?.classList.remove('open');
+  }
+  openHCard = id;
+  document.getElementById(id)?.classList.toggle('open');
+  document.getElementById('chev-'+id)?.classList.toggle('open');
+}
+
+function calcularStats(sesiones) {
+  const totalEj = sesiones.reduce((acc,s) =>
+    acc + (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs).length, 0);
+  return { totalEj };
+}
 </script>
 </body>
 </html>
