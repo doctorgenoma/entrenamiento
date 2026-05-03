@@ -128,6 +128,14 @@
     .confirm-sheet h3 { font-size:16px;font-weight:600;margin-bottom:6px; }
     .confirm-sheet p { font-size:13px;color:var(--text2);margin-bottom:1rem; }
     .confirm-sheet .btn-row { margin-top:0; }
+
+    /* Export box */
+    .export-box { background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:12px; }
+    .export-box h3 { font-size:14px;font-weight:600;margin-bottom:4px; }
+    .export-box p  { font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.5; }
+
+    /* Trainer badge */
+    .trainer-badge { display:inline-flex;align-items:center;gap:6px;background:#1a1a18;color:#fff;font-size:12px;font-weight:500;padding:3px 10px;border-radius:999px;margin-bottom:1rem; }
   </style>
 </head>
 <body>
@@ -155,7 +163,62 @@
       <input type="text" id="client-name" placeholder="Escribe tu nombre..." autocomplete="given-name" />
     </div>
     <button class="btn btn-primary" onclick="loginCliente()">Entrar</button>
+    <button class="btn btn-ghost" style="margin-top:8px;font-size:13px;" onclick="goTo('s-trainer-login')">Acceso entrenador</button>
     <div class="status-banner" id="banner-login"></div>
+  </div>
+
+  <!-- ===== LOGIN ENTRENADOR ===== -->
+  <div class="screen" id="s-trainer-login">
+    <div class="logo-bar">
+      <div class="logo-icon" style="background:#1a1a18;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h1>Entrenador</h1>
+      <p>Acceso restringido</p>
+    </div>
+    <div style="margin-bottom:1.25rem;">
+      <label class="field-label">Contraseña</label>
+      <input type="password" id="trainer-pass" placeholder="Contraseña..." />
+    </div>
+    <button class="btn btn-primary" onclick="loginTrainer()">Acceder</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="goTo('s-login')">‹ Volver</button>
+    <div class="status-banner" id="banner-trainer-login"></div>
+  </div>
+
+  <!-- ===== PANEL ENTRENADOR ===== -->
+  <div class="screen" id="s-trainer">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <div>
+        <div class="trainer-badge">🏋️ Entrenador</div>
+        <p style="font-weight:600;font-size:16px;">Panel de control</p>
+        <p style="font-size:12px;color:var(--text2);">Exporta y gestiona todos los registros</p>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('s-login')">Salir</button>
+    </div>
+
+    <div class="export-box">
+      <h3>Exportar todos los clientes</h3>
+      <p>Descarga todos los registros guardados en este dispositivo en un único archivo CSV, ordenados por cliente y fecha.</p>
+      <button class="btn btn-primary" onclick="exportarTodosCSV()">⬇ Descargar CSV completo</button>
+    </div>
+
+    <div class="export-box" style="margin-top:12px;">
+      <h3>Exportar un cliente específico</h3>
+      <p>Escribe el nombre exacto del cliente para descargar solo sus sesiones.</p>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" id="trainer-client-filter" placeholder="Nombre del cliente..." style="flex:1;" />
+        <button class="btn btn-sm btn-primary" style="white-space:nowrap;" onclick="exportarClienteCSV()">⬇ Exportar</button>
+      </div>
+      <div class="status-banner" id="banner-trainer-export" style="margin-top:10px;margin-bottom:0;"></div>
+    </div>
+
+    <div class="export-box" style="margin-top:12px;">
+      <h3>Clientes registrados en este dispositivo</h3>
+      <p>Clientes con sesiones guardadas localmente.</p>
+      <div id="trainer-clients-list"></div>
+    </div>
   </div>
 
   <!-- ===== PANEL CLIENTE ===== -->
@@ -174,6 +237,7 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="showTab('nueva')"    id="tab-nueva">Nueva sesión</button>
       <button class="tab-btn"        onclick="showTab('historial')" id="tab-historial">Mi historial</button>
+      <button class="tab-btn"        onclick="showTab('exportar')"  id="tab-exportar">Exportar</button>
     </div>
 
     <!-- TAB: NUEVA SESIÓN -->
@@ -213,7 +277,21 @@
       </div>
     </div>
 
+    <!-- TAB: EXPORTAR -->
+    <div class="tab-pane" id="pane-exportar">
+      <div class="export-box">
+        <h3>Descargar mis sesiones en CSV</h3>
+        <p>Descarga todas tus sesiones guardadas en este dispositivo como archivo CSV. Puedes abrirlo en Excel o Google Sheets.</p>
+        <button class="btn btn-primary" onclick="exportarClientePropio()">⬇ Descargar mis datos</button>
+      </div>
+      <div class="export-box" style="margin-top:12px;">
+        <h3>¿Qué contiene el archivo?</h3>
+        <p>Una fila por ejercicio por sesión, con columnas: Fecha, Ejercicio, Categoría, Peso, Series, Repeticiones y Observaciones.</p>
+      </div>
+    </div>
+
     <!-- TAB: HISTORIAL -->
+
     <div class="tab-pane" id="pane-historial">
       <div class="status-banner" id="banner-historial"></div>
       <div id="historial-container"></div>
@@ -300,6 +378,7 @@ function showTab(name) {
   document.getElementById('pane-' + name).classList.add('active');
   if (name === 'historial') cargarHistorial();
 }
+
 function banner(id, msg, type='loading') {
   const el = document.getElementById(id);
   el.innerHTML = type === 'loading' ? `<span class="spinner"></span>${msg}` : msg;
@@ -610,6 +689,125 @@ function toggleHCard(id) {
   openHCard = id;
   document.getElementById(id)?.classList.toggle('open');
   document.getElementById('chev-'+id)?.classList.toggle('open');
+}
+
+// ── CSV EXPORT ────────────────────────────────────────────────
+const CSV_HEADERS = ['Fecha','Cliente','Ejercicio','Categoría','Peso (kg)','Series','Repeticiones','Observaciones','Obs. general'];
+
+function sesionesToRows(sesiones) {
+  const rows = [];
+  sesiones.forEach(s => {
+    (s.ejercicios||[]).forEach(e => {
+      if (!e.peso && !e.series && !e.reps && !e.obs) return;
+      rows.push([s.fecha, s.cliente, e.nombre, e.cat,
+        e.peso||'', e.series||'', e.reps||'', e.obs||'', s.obsGeneral||'']);
+    });
+  });
+  return rows;
+}
+
+function descargarCSV(rows, filename) {
+  if (!rows.length) return false;
+  const csv = [CSV_HEADERS, ...rows]
+    .map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(','))
+    .join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+  return true;
+}
+
+// Cliente exporta sus propias sesiones
+function exportarClientePropio() {
+  const sesiones = getLocal();
+  if (!sesiones.length) { alert('No tienes sesiones guardadas en este dispositivo.'); return; }
+  const rows = sesionesToRows(sesiones);
+  const fecha = new Date().toISOString().slice(0,10);
+  descargarCSV(rows, `entrenamiento_${clientName.replace(/\s+/g,'_')}_${fecha}.csv`);
+}
+
+// ── ENTRENADOR ────────────────────────────────────────────────
+// Cambia esta contraseña por la que quieras
+const TRAINER_PASSWORD = 'entrenador2024';
+
+function loginTrainer() {
+  const pass = document.getElementById('trainer-pass').value;
+  if (pass !== TRAINER_PASSWORD) {
+    banner('banner-trainer-login','Contraseña incorrecta','err');
+    return;
+  }
+  document.getElementById('trainer-pass').value = '';
+  cargarPanelEntrenador();
+  goTo('s-trainer');
+}
+document.getElementById('trainer-pass')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') loginTrainer();
+});
+
+function getAllClients() {
+  // Busca todas las claves pt_* en localStorage
+  const clients = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('pt_')) {
+      const name = key.slice(3);
+      const sessions = JSON.parse(localStorage.getItem(key) || '[]');
+      if (sessions.length) clients.push({ name, sessions });
+    }
+  }
+  return clients.sort((a,b) => a.name.localeCompare(b.name));
+}
+
+function cargarPanelEntrenador() {
+  const clients = getAllClients();
+  const cont = document.getElementById('trainer-clients-list');
+  if (!clients.length) {
+    cont.innerHTML = '<p style="font-size:13px;color:var(--text2);">No hay clientes registrados en este dispositivo aún.</p>';
+    return;
+  }
+  cont.innerHTML = clients.map(c => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <p style="font-size:14px;font-weight:500;">${c.name}</p>
+        <p style="font-size:12px;color:var(--text2);">${c.sessions.length} sesiones</p>
+      </div>
+      <button class="btn btn-sm" onclick="exportarClienteDesdePanel('${c.name}')">⬇ CSV</button>
+    </div>
+  `).join('');
+}
+
+function exportarClienteDesdePanel(nombre) {
+  const key      = 'pt_' + nombre;
+  const sesiones = JSON.parse(localStorage.getItem(key) || '[]');
+  if (!sesiones.length) { alert(`No hay sesiones para ${nombre}`); return; }
+  const rows  = sesionesToRows(sesiones);
+  const fecha = new Date().toISOString().slice(0,10);
+  descargarCSV(rows, `${nombre.replace(/\s+/g,'_')}_${fecha}.csv`);
+}
+
+function exportarTodosCSV() {
+  const clients = getAllClients();
+  if (!clients.length) { alert('No hay datos guardados en este dispositivo.'); return; }
+  const todasSesiones = clients.flatMap(c => c.sessions);
+  todasSesiones.sort((a,b) => (a.cliente||'').localeCompare(b.cliente||'') || (b.createdAt||0) - (a.createdAt||0));
+  const rows  = sesionesToRows(todasSesiones);
+  const fecha = new Date().toISOString().slice(0,10);
+  const ok    = descargarCSV(rows, `todos_los_clientes_${fecha}.csv`);
+  if (!ok) alert('No hay registros de ejercicios para exportar.');
+}
+
+function exportarClienteCSV() {
+  const nombre = document.getElementById('trainer-client-filter').value.trim();
+  if (!nombre) { banner('banner-trainer-export','Escribe el nombre del cliente','err'); return; }
+  const key      = 'pt_' + nombre;
+  const sesiones = JSON.parse(localStorage.getItem(key) || '[]');
+  if (!sesiones.length) { banner('banner-trainer-export',`No se encontraron sesiones para "${nombre}"`, 'err'); return; }
+  const rows  = sesionesToRows(sesiones);
+  const fecha = new Date().toISOString().slice(0,10);
+  descargarCSV(rows, `${nombre.replace(/\s+/g,'_')}_${fecha}.csv`);
+  banner('banner-trainer-export','CSV descargado correctamente','ok');
 }
 
 // ── BORRAR SESIÓN ─────────────────────────────────────────────
