@@ -337,6 +337,8 @@
 const EXERCISES = [
   {id:'squat-clean',     nombre:'Squat clean',               cat:'Halterofilia'},
   {id:'power-clean',     nombre:'Power clean',               cat:'Halterofilia'},
+  {id:'jerk',            nombre:'Jerk',                      cat:'Halterofilia'},
+  {id:'split-jerk',      nombre:'SplitJerk',                 cat:'Halterofilia'},
   {id:'peso-muerto',     nombre:'Peso muerto',               cat:'Piernas'},
   {id:'sent-bulg',       nombre:'Sentadillas búlgaras',      cat:'Piernas'},
   {id:'sent-norm',       nombre:'Sentadillas normales',      cat:'Piernas'},
@@ -419,26 +421,26 @@ function fechaAhora() {
   return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
 }
 
-// ── ENVÍO A SHEETS con Image trick (evita CORS/ERR_FAILED) ──
-// fetch con no-cors no devuelve respuesta legible pero SÍ ejecuta el script.
-// Para el historial (que necesita respuesta) usamos fetch normal.
+// ── ENVÍO A SHEETS con iframe oculto (sin restricciones CORS) ──
 function enviarASheets(session) {
   return new Promise((resolve) => {
-    if (!SCRIPT_URL || SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbyTzQGu1Pz92xB7c2-eksIhWj7gLSMvyoZabNiTFqCUrNVvwpOsmyuC8rsH-2eQZFrZTw/exec') {
+    if (!SCRIPT_URL || SCRIPT_URL === 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
       resolve({ ok: false, reason: 'no_url' });
       return;
     }
     const encoded = toBase64(session);
     const url = `${SCRIPT_URL}?action=guardar&data=${encodeURIComponent(encoded)}`;
 
-    // Usamos una imagen para disparar la petición GET sin restricciones CORS
-    const img = new Image();
-    img.onload  = () => resolve({ ok: true });
-    img.onerror = () => resolve({ ok: true }); // el script ejecutó pero devuelve JSON, no imagen → onerror es normal
-    img.src = url;
+    // iframe oculto — no tiene restricciones CORS y ejecuta el script de forma fiable
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = url;
+    iframe.onload  = () => { setTimeout(() => iframe.remove(), 1000); resolve({ ok: true }); };
+    iframe.onerror = () => { setTimeout(() => iframe.remove(), 1000); resolve({ ok: true }); };
+    document.body.appendChild(iframe);
 
-    // Timeout de seguridad: 8 segundos
-    setTimeout(() => resolve({ ok: true, reason: 'timeout' }), 8000);
+    // Timeout de seguridad: 10 segundos
+    setTimeout(() => { iframe.remove(); resolve({ ok: true, reason: 'timeout' }); }, 10000);
   });
 }
 
@@ -636,7 +638,7 @@ async function cargarHistorial() {
   cont.innerHTML = '';
 
   // Intentar desde Sheets
-  if (SCRIPT_URL && SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbyTzQGu1Pz92xB7c2-eksIhWj7gLSMvyoZabNiTFqCUrNVvwpOsmyuC8rsH-2eQZFrZTw/exec') {
+  if (SCRIPT_URL && SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
     try {
       const url = `${SCRIPT_URL}?action=historial&cliente=${encodeURIComponent(clientName)}`;
       const resp = await fetch(url);
@@ -759,7 +761,7 @@ function exportarClientePropio() {
 
 // ── ENTRENADOR ────────────────────────────────────────────────
 // Cambia esta contraseña por la que quieras
-const TRAINER_PASSWORD = 'entrenador2026';
+const TRAINER_PASSWORD = 'entrenador2024';
 
 function loginTrainer() {
   const pass = document.getElementById('trainer-pass').value;
@@ -789,6 +791,8 @@ function getAllClients() {
   return clients.sort((a,b) => a.name.localeCompare(b.name));
 }
 
+let trainerOpenClient = null;
+
 function cargarPanelEntrenador() {
   const clients = getAllClients();
   const cont = document.getElementById('trainer-clients-list');
@@ -797,14 +801,78 @@ function cargarPanelEntrenador() {
     return;
   }
   cont.innerHTML = clients.map(c => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
-      <div>
-        <p style="font-size:14px;font-weight:500;">${c.name}</p>
-        <p style="font-size:12px;color:var(--text2);">${c.sessions.length} sesiones</p>
+    <div class="history-card" id="tclient-wrap-${c.name.replace(/\s+/g,'_')}">
+      <div class="history-card-hdr" onclick="toggleTrainerClient('${c.name.replace(/\s+/g,'_')}')">
+        <div class="history-card-hdr-left">
+          <p style="font-size:14px;font-weight:500;">${c.name}</p>
+          <p style="font-size:12px;color:var(--text2);">${c.sessions.length} sesiones guardadas</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn btn-sm" onclick="event.stopPropagation();exportarClienteDesdePanel('${c.name}')">⬇ CSV</button>
+          <span class="chevron" id="tchev-${c.name.replace(/\s+/g,'_')}">›</span>
+        </div>
       </div>
-      <button class="btn btn-sm" onclick="exportarClienteDesdePanel('${c.name}')">⬇ CSV</button>
+      <div class="history-card-body" id="tclient-${c.name.replace(/\s+/g,'_')}">
+        ${c.sessions.map(s => {
+          const filled = (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs);
+          const sid = s.id;
+          const cname = c.name;
+          return `
+          <div style="padding:8px 0;border-bottom:1px solid var(--border);" id="tsession-${sid}">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <p style="font-size:13px;font-weight:500;">${formatFecha(s.fecha)}</p>
+                <p style="font-size:12px;color:var(--text2);">${filled.length} ejercicios</p>
+              </div>
+              <button class="delete-session-btn" onclick="trainerDeleteSession('${cname}','${sid}')">🗑 Borrar</button>
+            </div>
+            ${filled.length ? `<div style="margin-top:6px;">
+              ${filled.slice(0,3).map(e=>`<span style="font-size:11px;background:var(--bg2);border-radius:999px;padding:2px 8px;margin-right:4px;">${e.nombre}</span>`).join('')}
+              ${filled.length>3?`<span style="font-size:11px;color:var(--text2);">+${filled.length-3} más</span>`:''}
+            </div>`:''}
+          </div>`;
+        }).join('')}
+        <button class="btn btn-sm btn-red" style="margin-top:10px;width:100%;" onclick="trainerDeleteAllClient('${c.name}')">
+          🗑 Borrar todas las sesiones de ${c.name}
+        </button>
+      </div>
     </div>
   `).join('');
+}
+
+function toggleTrainerClient(key) {
+  if (trainerOpenClient && trainerOpenClient !== key) {
+    document.getElementById('tclient-'+trainerOpenClient)?.classList.remove('open');
+    document.getElementById('tchev-'+trainerOpenClient)?.classList.remove('open');
+  }
+  trainerOpenClient = key;
+  document.getElementById('tclient-'+key)?.classList.toggle('open');
+  document.getElementById('tchev-'+key)?.classList.toggle('open');
+}
+
+function trainerDeleteSession(clientName, sessionId) {
+  if (!confirm('¿Borrar esta sesión?')) return;
+  const key = 'pt_' + clientName;
+  const arr = JSON.parse(localStorage.getItem(key) || '[]');
+  const filtered = arr.filter(s => s.id !== sessionId);
+  localStorage.setItem(key, JSON.stringify(filtered));
+  const el = document.getElementById('tsession-' + sessionId);
+  if (el) {
+    el.style.transition = 'opacity 0.2s';
+    el.style.opacity = '0';
+    setTimeout(() => { el.remove(); cargarPanelEntrenador(); }, 220);
+  }
+}
+
+function trainerDeleteAllClient(nombre) {
+  if (!confirm(`¿Borrar TODAS las sesiones de ${nombre}? Esta acción no se puede deshacer.`)) return;
+  localStorage.removeItem('pt_' + nombre);
+  const wrap = document.getElementById('tclient-wrap-' + nombre.replace(/\s+/g,'_'));
+  if (wrap) {
+    wrap.style.transition = 'opacity 0.2s';
+    wrap.style.opacity = '0';
+    setTimeout(() => { wrap.remove(); cargarPanelEntrenador(); }, 220);
+  }
 }
 
 function exportarClienteDesdePanel(nombre) {
