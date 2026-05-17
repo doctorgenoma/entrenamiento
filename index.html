@@ -7,9 +7,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Entreno" />
-  <link rel="apple-touch-icon" href="/entrenamiento/icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
   <title>Mi entrenamiento</title>
-  <link rel="manifest" href="/entrenamiento/manifest.json" />
+  <link rel="manifest" href="manifest.json" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -663,28 +663,47 @@ function renderEntries() {
   cats.forEach(cat => {
     html += `<div class="section-label">${cat}</div>`;
     sel.filter(e => e.cat === cat).forEach(ex => {
-      html += `
-      <div class="ex-entry">
-        <div class="ex-entry-hdr" onclick="toggleEntry('${ex.id}')">
-          <div class="ex-left">
-            <div class="status-dot" id="dot-${ex.id}"></div>
-            <span class="ex-name">${ex.nombre}</span>
+      if (cat === 'Calentamiento') {
+        html += `
+        <div class="ex-entry">
+          <div class="ex-entry-hdr" onclick="toggleEntry('${ex.id}')">
+            <div class="ex-left">
+              <div class="status-dot ok" id="dot-${ex.id}"></div>
+              <span class="ex-name">${ex.nombre}</span>
+            </div>
+            <span class="chevron" id="chev-${ex.id}">›</span>
           </div>
-          <span class="chevron" id="chev-${ex.id}">›</span>
-        </div>
-        <div class="ex-body" id="body-${ex.id}">
-          <div class="fields-3">
-            <div><label class="field-label">Peso (kg)</label>
-              <input type="number" id="p-${ex.id}" placeholder="0" min="0" step="0.5" inputmode="decimal" oninput="checkDot('${ex.id}')"/></div>
-            <div><label class="field-label">Series</label>
-              <input type="number" id="s-${ex.id}" placeholder="0" min="0" inputmode="numeric" oninput="checkDot('${ex.id}')"/></div>
-            <div><label class="field-label">Reps</label>
-              <input type="number" id="r-${ex.id}" placeholder="0" min="0" inputmode="numeric" oninput="checkDot('${ex.id}')"/></div>
+          <div class="ex-body" id="body-${ex.id}">
+            <div style="display:flex;align-items:center;gap:12px;padding:6px 0;">
+              <input type="checkbox" id="done-${ex.id}" checked onchange="checkDot('${ex.id}')" style="appearance:checkbox;-webkit-appearance:checkbox;width:20px;height:20px;accent-color:var(--yellow);cursor:pointer;" />
+              <label for="done-${ex.id}" class="field-label" style="margin-bottom:0;cursor:pointer;font-size:14px;color:var(--text);">Realizado</label>
+            </div>
           </div>
-          <div><label class="field-label">Observaciones</label>
-            <textarea id="o-${ex.id}" placeholder="Sensaciones, dificultad..." oninput="checkDot('${ex.id}')"></textarea></div>
-        </div>
-      </div>`;
+        </div>`;
+      } else {
+        html += `
+        <div class="ex-entry">
+          <div class="ex-entry-hdr" onclick="toggleEntry('${ex.id}')">
+            <div class="ex-left">
+              <div class="status-dot" id="dot-${ex.id}"></div>
+              <span class="ex-name">${ex.nombre}</span>
+            </div>
+            <span class="chevron" id="chev-${ex.id}">›</span>
+          </div>
+          <div class="ex-body" id="body-${ex.id}">
+            <div class="fields-3">
+              <div><label class="field-label">Peso (kg)</label>
+                <input type="number" id="p-${ex.id}" placeholder="0" min="0" step="0.5" inputmode="decimal" oninput="checkDot('${ex.id}')"/></div>
+              <div><label class="field-label">Series</label>
+                <input type="number" id="s-${ex.id}" placeholder="0" min="0" inputmode="numeric" oninput="checkDot('${ex.id}')"/></div>
+              <div><label class="field-label">Reps</label>
+                <input type="number" id="r-${ex.id}" placeholder="0" min="0" inputmode="numeric" oninput="checkDot('${ex.id}')"/></div>
+            </div>
+            <div><label class="field-label">Observaciones</label>
+              <textarea id="o-${ex.id}" placeholder="Sensaciones, dificultad..." oninput="checkDot('${ex.id}')"></textarea></div>
+          </div>
+        </div>`;
+      }
     });
   });
   document.getElementById('register-container').innerHTML = html;
@@ -702,16 +721,33 @@ function toggleEntry(id) {
   document.getElementById('chev-'+id)?.classList.toggle('open');
 }
 function checkDot(id) {
-  const filled = ['p','s','r','o'].some(f => document.getElementById(f+'-'+id)?.value?.trim());
+  const ex = EXERCISES.find(e => e.id === id);
+  let filled = false;
+  if (ex && ex.cat === 'Calentamiento') {
+    filled = document.getElementById('done-'+id)?.checked;
+  } else {
+    filled = ['p','s','r','o'].some(f => document.getElementById(f+'-'+id)?.value?.trim());
+  }
   const dot = document.getElementById('dot-'+id);
   if (dot) dot.className = 'status-dot' + (filled ? ' ok' : '');
 }
 function getData(id) {
+  const ex = EXERCISES.find(e => e.id === id);
+  if (ex && ex.cat === 'Calentamiento') {
+    return {
+      peso:   '',
+      series: '',
+      reps:   '',
+      obs:    '',
+      realizado: document.getElementById('done-'+id)?.checked ? 'Sí' : ''
+    };
+  }
   return {
     peso:   document.getElementById('p-'+id)?.value || '',
     series: document.getElementById('s-'+id)?.value || '',
     reps:   document.getElementById('r-'+id)?.value || '',
-    obs:    document.getElementById('o-'+id)?.value || ''
+    obs:    document.getElementById('o-'+id)?.value || '',
+    realizado: ''
   };
 }
 
@@ -757,7 +793,7 @@ function deleteLocal(sessionId) {
 
 // ── CONFIRMACIÓN ──────────────────────────────────────────────
 function mostrarConfirmacion(s) {
-  const filled = s.ejercicios.filter(e => e.peso||e.series||e.reps||e.obs);
+  const filled = s.ejercicios.filter(e => e.peso||e.series||e.reps||e.obs||e.realizado);
   document.getElementById('confirm-sub').textContent =
     `${formatFecha(s.fecha)} · ${s.cliente} · ${filled.length} ejercicios`;
   document.getElementById('confirm-header').innerHTML = `
@@ -769,6 +805,7 @@ function mostrarConfirmacion(s) {
     if(e.peso)   parts.push(e.peso+' kg');
     if(e.series) parts.push(e.series+' series');
     if(e.reps)   parts.push(e.reps+' reps');
+    if(e.cat === 'Calentamiento' && e.realizado) parts.push('Realizado ✓');
     return `<div class="summary-row">
       <span class="sum-name">${e.nombre}</span>
       <span class="sum-vals">${parts.join(' · ')||'—'}</span></div>`;
@@ -820,7 +857,7 @@ async function cargarHistorial() {
 function renderHistorial(sesiones) {
   const cont = document.getElementById('historial-container');
   const totalEj = sesiones.reduce((acc,s) =>
-    acc + (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs).length, 0);
+    acc + (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs||e.realizado).length, 0);
 
   cont.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem;">
@@ -829,7 +866,7 @@ function renderHistorial(sesiones) {
       <div class="stat-card"><div class="stat-label">Última</div><div class="stat-val-sm">${formatFecha(sesiones[0]?.fecha)||'—'}</div></div>
     </div>
     ${sesiones.map((s,i) => {
-      const filled = (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs);
+      const filled = (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs||e.realizado);
       return `
       <div class="history-card" id="hcard-wrap-${s.id}">
         <div class="history-card-hdr" onclick="toggleHCard('hc-${i}')">
@@ -845,6 +882,7 @@ function renderHistorial(sesiones) {
             if(e.peso)   parts.push(e.peso+' kg');
             if(e.series) parts.push(e.series+' series');
             if(e.reps)   parts.push(e.reps+' reps');
+            if(e.cat === 'Calentamiento' && e.realizado) parts.push('Realizado ✓');
             return `<div class="history-ex-row">
               <span style="font-weight:500;">${e.nombre}</span>
               <span style="color:var(--text2);font-family:var(--mono);font-size:12px;">${parts.join(' · ')||'—'}</span>
@@ -876,9 +914,9 @@ function sesionesToRows(sesiones) {
   const rows = [];
   sesiones.forEach(s => {
     (s.ejercicios||[]).forEach(e => {
-      if (!e.peso && !e.series && !e.reps && !e.obs) return;
+      if (!e.peso && !e.series && !e.reps && !e.obs && !e.realizado) return;
       rows.push([s.fecha, s.cliente, e.nombre, e.cat,
-        e.peso||'', e.series||'', e.reps||'', e.obs||'', s.obsGeneral||'']);
+        e.peso||'', e.series||'', e.reps||'', e.obs||(e.realizado?'Realizado':''), s.obsGeneral||'']);
     });
   });
   return rows;
@@ -961,7 +999,7 @@ function cargarPanelEntrenador() {
       </div>
       <div class="history-card-body" id="tclient-${c.name.replace(/\s+/g,'_')}">
         ${c.sessions.map(s => {
-          const filled = (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs);
+          const filled = (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs||e.realizado);
           const sid = s.id;
           const cname = c.name;
           return `
@@ -987,7 +1025,6 @@ function cargarPanelEntrenador() {
   `).join('');
 }
 
-// Resto de funciones se mantienen intactas...
 function toggleTrainerClient(key) {
   if (trainerOpenClient && trainerOpenClient !== key) {
     document.getElementById('tclient-'+trainerOpenClient)?.classList.remove('open');
@@ -998,6 +1035,7 @@ function toggleTrainerClient(key) {
   document.getElementById('tchev-'+key)?.classList.toggle('open');
 }
 
+// ── BORRAR SESIÓN ─────────────────────────────────────────────
 function trainerDeleteSession(clientName, sessionId) {
   if (!confirm('¿Borrar esta sesión?')) return;
   const key = 'pt_' + clientName;
@@ -1043,7 +1081,7 @@ function exportarTodosCSV() {
   if (!ok) alert('No hay registros de ejercicios para exportar.');
 }
 
-// Resto de funciones intactas...
+// ── BORRAR SESIÓN ─────────────────────────────────────────────
 function exportarClienteCSV() {
   const nombre = document.getElementById('trainer-client-filter').value.trim();
   if (!nombre) { banner('banner-trainer-export','Escribe el nombre del cliente','err'); return; }
@@ -1069,6 +1107,7 @@ function closeDeleteOverlay() {
 function confirmDelete() {
   if (!pendingDeleteId) return;
   deleteLocal(pendingDeleteId);
+  // Animación de salida
   const card = document.getElementById('hcard-wrap-' + pendingDeleteId);
   if (card) {
     card.style.transition = 'opacity 0.25s, transform 0.25s';
@@ -1077,6 +1116,7 @@ function confirmDelete() {
     setTimeout(() => card.remove(), 250);
   }
   closeDeleteOverlay();
+  // Recargar stats
   setTimeout(() => cargarHistorial(), 300);
 }
 </script>
