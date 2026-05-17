@@ -266,11 +266,6 @@
 <body>
 <div class="app">
 
-  <script>
-    // ⚠️ PEGA AQUÍ TU URL DE APPS SCRIPT
-    const SCRIPT_URL = "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT";
-  </script>
-
   <!-- ===== LOGIN ===== -->
   <div class="screen active" id="s-login">
     <div class="logo-bar">
@@ -458,74 +453,28 @@
 </div>
 
 <script>
+// ⚠️ PEGA AQUÍ TU URL DE APPS SCRIPT
+const SCRIPT_URL = "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT";
+
 // ── EJERCICIOS ───────────────────────────────────────────────
 const EXERCISES = [
-  {id:'mov-hombros',     nombre:'Movilidad hombros',         cat:'Calentamiento'},
-  {id:'escap-barra',     nombre:'Escápulas (en barra)',      cat:'Calentamiento'},
-  {id:'kipping-barra',   nombre:'Kipping (en barra)',        cat:'Calentamiento'},
-  {id:'worm-walk',       nombre:'Andar como gusano',         cat:'Calentamiento'},
-  {id:'mov-legs',        nombre:'Movilidad piernas',         cat:'Calentamiento'},
-  {id:'baby-burpees',    nombre:'Baby burpees',              cat:'Calentamiento'},
-  {id:'box-ups',         nombre:'Subida al cajón',           cat:'Calentamiento'},
-  {id:'squat-clean',     nombre:'Squat clean',               cat:'Multiarticular'},
-  {id:'power-clean',     nombre:'Power clean',               cat:'Multiarticular'},
-  {id:'jerk',            nombre:'Jerk',                      cat:'Multiarticular'},
-  {id:'split-jerk',      nombre:'SplitJerk',                 cat:'Multiarticular'},
-  {id:'squat-snatch',    nombre:'Squat Snatch',              cat:'Multiarticular'},
-  {id:'power-snatch',    nombre:'Power Snatch',              cat:'Multiarticular'},
-  {id:'dumb-snatch',     nombre:'Snatch con mancuerna',      cat:'Multiarticular'},
-  {id:'peso-muerto',     nombre:'Peso muerto',               cat:'Multiarticular'},
-  {id:'sent-bulg',       nombre:'Sentadillas búlgaras',      cat:'Multiarticular'},
-  {id:'sent-norm',       nombre:'Sentadillas normales',      cat:'Multiarticular'},
-  {id:'zancadas',        nombre:'Zancadas',                  cat:'Multiarticular'},
-  {id:'trineo',          nombre:'Empujar trineo',            cat:'Multiarticular'},
-  {id:'press-h-manc',    nombre:'Press hombro (mancuernas)', cat:'Multiarticular'},
-  {id:'press-h-bar',     nombre:'Press hombro (barra)',      cat:'Multiarticular'},
-  {id:'press-h-maq',     nombre:'Press hombro (máquina)',    cat:'Multiarticular'},
-  {id:'jalones',         nombre:'Jalones en polea',          cat:'Multiarticular'},
-  {id:'remo-polea',      nombre:'Remo en polea',             cat:'Multiarticular'},
-  {id:'remo-maq',        nombre:'Remo en máquina',           cat:'Multiarticular'},
-  {id:'dominadas',       nombre:'Dominadas',                 cat:'Multiarticular'},
-  {id:'rings-pullup',    nombre:'Dominadas en anillas',      cat:'Multiarticular'},
-  {id:'remo-manc',       nombre:'Remo con mancuernas',       cat:'Multiarticular'},
-  {id:'press-banca',     nombre:'Press de banca',            cat:'Multiarticular'},
-  {id:'press-banca-maq', nombre:'Press banca (máquina)',     cat:'Multiarticular'},
-  {id:'rings-press',     nombre:'Ring dips',                 cat:'Multiarticular'},
-  {id:'push-ups',        nombre:'Flexiones',                 cat:'Multiarticular'},
-  {id:'curl-biceps',     nombre:'Curl de bíceps',            cat:'Accesorio'},
-  {id:'triceps',         nombre:'Tríceps',                   cat:'Accesorio'},
-  {id:'escap-polea',     nombre:'Escápulas (en polea)',      cat:'Accesorio'},
-  {id:'aductores',       nombre:'Aductores',                 cat:'Accesorio'},
-  {id:'abductores',      nombre:'Abductores',                cat:'Accesorio'},
-  {id:'hip-thrusts',     nombre:'Hip thrusts (pelvis)',      cat:'Accesorio'},
-  {id:'elev-h-manc',     nombre:'Elevaciones laterales (manc)', cat:'Accesorio'},
-  {id:'elevf-h-manc',    nombre:'Elevaciones frontales (manc)', cat:'Accesorio'},
-  {id:'hollow-rock',     nombre:'Hollow rock',               cat:'Accesorio'},
-  {id:'burpees',         nombre:'Burpees',                   cat:'Otros-básicos'},
-  {id:'burpees-otbox',   nombre:'Burpees pasando cajón',     cat:'Otros-básicos'},
-  {id:'burpees-otbar,    nombre:'Burpees pasando barra',     cat:'Otros-básicos'},
-  {id:'burpees-pullup',  nombre:'Burpees con dominada',      cat:'Otros-básicos'},
-  {id:'box-jumps',       nombre:'Saltos al cajón',           cat:'Otros-básicos'},
-  {id:'box-jumps-over',  nombre:'Saltos pasando cajón',      cat:'Otros-básicos'},
-  {id:'dumbells-otb',    nombre:'Pase de cajón con manc',    cat:'Otros-básicos'},
-  {id:'ket-swings',      nombre:'Kettelbell swings',         cat:'Otros-básicos'},
-  {id:'ket-snatch',      nombre:'Kettelbell snatch',         cat:'Otros-básicos'},
-  {id:'ket-squat',       nombre:'Kettelbell squats',         cat:'Otros-básicos'},
-  {id:'rope-climb',      nombre:'Subidas a la cuerda',       cat:'Gimnásticos'},
-  {id:'pino-pared',      nombre:'Pino en pared',             cat:'Gimnásticos'},
-  {id:'wall-walk',       nombre:'Subidas a pared',           cat:'Gimnásticos'},
-  {id:'hspu',            nombre:'Handstand push ups',        cat:'Gimnásticos'},
-  {id:'toes-to-bar',     nombre:'Toes to bar',               cat:'Gimnásticos'},
-  {id:'planks',          nombre:'Planchas',                  cat:'Gimnásticos'},
-  {id:'comba',           nombre:'Saltos a la comba',         cat:'Gimnásticos'},
-  {id:'muscle-ups',      nombre:'Muscle ups',                cat:'Gimnásticos'},
-  {id:'ring-muscle-ups', nombre:'Muscle ups en anillas',     cat:'Gimnásticos'},
-  {id:'bear-walks',      nombre:'Caminar de oso',            cat:'Gimnásticos'},
-  {id:'bike',            nombre:'Bicicleta',                 cat:'Cardio'},
-  {id:'row',             nombre:'Remo',                      cat:'Cardio'},
-  {id:'skierg',          nombre:'Ski',                       cat:'Cardio'},
-  {id:'swim',            nombre:'Natación',                  cat:'Cardio'},
-  {id:'stretching',      nombre:'Estiramientos',             cat:'Cardio'},
+  {id:'peso-muerto',     nombre:'Peso muerto',               cat:'Piernas'},
+  {id:'sent-bulg',       nombre:'Sentadillas búlgaras',      cat:'Piernas'},
+  {id:'sent-norm',       nombre:'Sentadillas normales',      cat:'Piernas'},
+  {id:'aductores',       nombre:'Aductores',                 cat:'Piernas'},
+  {id:'abductores',      nombre:'Abductores',                cat:'Piernas'},
+  {id:'hip-thrusts',     nombre:'Hip thrusts (pelvis)',      cat:'Glúteos'},
+  {id:'press-h-manc',    nombre:'Press hombro (mancuernas)', cat:'Hombros'},
+  {id:'press-h-maq',     nombre:'Press hombro (máquina)',    cat:'Hombros'},
+  {id:'jalones',         nombre:'Jalones en polea',          cat:'Espalda'},
+  {id:'remo-polea',      nombre:'Remo en polea',             cat:'Espalda'},
+  {id:'remo-maq',        nombre:'Remo en máquina',           cat:'Espalda'},
+  {id:'press-banca',     nombre:'Press de banca',            cat:'Pecho'},
+  {id:'press-banca-maq', nombre:'Press banca (máquina)',     cat:'Pecho'},
+  {id:'curl-biceps',     nombre:'Curl de bíceps',            cat:'Brazos'},
+  {id:'triceps',         nombre:'Tríceps',                   cat:'Brazos'},
+  {id:'escap-polea',     nombre:'Escápulas (en polea)',      cat:'Escápulas'},
+  {id:'escap-barra',     nombre:'Escápulas (colgada barra)', cat:'Escápulas'},
 ];
 
 // ── ESTADO ───────────────────────────────────────────────────

@@ -2,10 +2,11 @@
   "name": "Mi Entrenamiento",
   "short_name": "Entreno",
   "description": "Registra tus sesiones de entrenamiento personal",
-  "start_url": "/",
+  "start_url": "/entrenamiento/",
+  "scope": "/entrenamiento/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1D9E75",
+  "background_color": "#0d1b2a",
+  "theme_color": "#0d1b2a",
   "orientation": "portrait",
   "icons": [
     {
