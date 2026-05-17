@@ -7,9 +7,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Entreno" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="/entrenamiento/icon-192.png" />
   <title>Mi entrenamiento</title>
-  <link rel="manifest" href="manifest.json" />
+  <link rel="manifest" href="/entrenamiento/manifest.json" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -266,7 +266,6 @@
 <body>
 <div class="app">
 
-  <!-- ===== LOGIN ===== -->
   <div class="screen active" id="s-login">
     <div class="logo-bar">
       <div class="logo-icon">
@@ -287,7 +286,6 @@
     <div class="status-banner" id="banner-login"></div>
   </div>
 
-  <!-- ===== LOGIN ENTRENADOR ===== -->
   <div class="screen" id="s-trainer-login">
     <div class="logo-bar">
       <div class="logo-icon" style="background:#1a1a18;">
@@ -307,7 +305,6 @@
     <div class="status-banner" id="banner-trainer-login"></div>
   </div>
 
-  <!-- ===== PANEL ENTRENADOR ===== -->
   <div class="screen" id="s-trainer">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
       <div>
@@ -341,7 +338,6 @@
     </div>
   </div>
 
-  <!-- ===== PANEL CLIENTE ===== -->
   <div class="screen" id="s-panel">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
       <div style="display:flex;align-items:center;gap:12px;">
@@ -360,7 +356,6 @@
       <button class="tab-btn"        onclick="showTab('exportar')"  id="tab-exportar">Exportar</button>
     </div>
 
-    <!-- TAB: NUEVA SESIÓN -->
     <div class="tab-pane active" id="pane-nueva">
       <div id="paso-1">
         <div class="progress-wrap"><div class="progress-fill" style="width:50%"></div></div>
@@ -397,7 +392,6 @@
       </div>
     </div>
 
-    <!-- TAB: EXPORTAR -->
     <div class="tab-pane" id="pane-exportar">
       <div class="export-box">
         <h3>Descargar mis sesiones en CSV</h3>
@@ -410,15 +404,12 @@
       </div>
     </div>
 
-    <!-- TAB: HISTORIAL -->
-
     <div class="tab-pane" id="pane-historial">
       <div class="status-banner" id="banner-historial"></div>
       <div id="historial-container"></div>
     </div>
   </div>
 
-  <!-- ===== CONFIRMACIÓN ===== -->
   <div class="screen" id="s-confirm">
     <div style="text-align:center;padding:2rem 0 1.5rem;">
       <div class="success-icon">
@@ -438,7 +429,6 @@
     </div>
   </div>
 
-  <!-- ===== CONFIRM DELETE SHEET ===== -->
   <div class="confirm-overlay" id="delete-overlay">
     <div class="confirm-sheet">
       <h3>Eliminar sesión</h3>
@@ -501,7 +491,7 @@ const EXERCISES = [
   {id:'hollow-rock',     nombre:'Hollow rock',               cat:'Accesorio'},
   {id:'burpees',         nombre:'Burpees',                   cat:'Otros-básicos'},
   {id:'burpees-otbox',   nombre:'Burpees pasando cajón',     cat:'Otros-básicos'},
-  {id:'burpees-otbar,    nombre:'Burpees pasando barra',     cat:'Otros-básicos'},
+  {id:'burpees-otbar',   nombre:'Burpees pasando barra',     cat:'Otros-básicos'},
   {id:'burpees-pullup',  nombre:'Burpees con dominada',      cat:'Otros-básicos'},
   {id:'box-jumps',       nombre:'Saltos al cajón',           cat:'Otros-básicos'},
   {id:'box-jumps-over',  nombre:'Saltos pasando cajón',      cat:'Otros-básicos'},
@@ -997,6 +987,7 @@ function cargarPanelEntrenador() {
   `).join('');
 }
 
+// Resto de funciones se mantienen intactas...
 function toggleTrainerClient(key) {
   if (trainerOpenClient && trainerOpenClient !== key) {
     document.getElementById('tclient-'+trainerOpenClient)?.classList.remove('open');
@@ -1052,6 +1043,7 @@ function exportarTodosCSV() {
   if (!ok) alert('No hay registros de ejercicios para exportar.');
 }
 
+// Resto de funciones intactas...
 function exportarClienteCSV() {
   const nombre = document.getElementById('trainer-client-filter').value.trim();
   if (!nombre) { banner('banner-trainer-export','Escribe el nombre del cliente','err'); return; }
@@ -1064,7 +1056,6 @@ function exportarClienteCSV() {
   banner('banner-trainer-export','CSV descargado correctamente','ok');
 }
 
-// ── BORRAR SESIÓN ─────────────────────────────────────────────
 function abrirDeleteOverlay(sessionId, fecha) {
   pendingDeleteId = sessionId;
   document.getElementById('delete-msg').textContent =
@@ -1078,7 +1069,6 @@ function closeDeleteOverlay() {
 function confirmDelete() {
   if (!pendingDeleteId) return;
   deleteLocal(pendingDeleteId);
-  // Animación de salida
   const card = document.getElementById('hcard-wrap-' + pendingDeleteId);
   if (card) {
     card.style.transition = 'opacity 0.25s, transform 0.25s';
@@ -1087,7 +1077,6 @@ function confirmDelete() {
     setTimeout(() => card.remove(), 250);
   }
   closeDeleteOverlay();
-  // Recargar stats
   setTimeout(() => cargarHistorial(), 300);
 }
 </script>
