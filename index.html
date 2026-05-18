@@ -154,19 +154,59 @@
     }
     .back-btn:hover { color:var(--yellow); }
 
-    /* ── Chips ── */
-    .chips-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px; }
+    /* ── Chips — lista vertical ── */
+    .chips-wrap { display:flex; flex-direction:column; gap:0; margin-bottom:4px; }
     .ex-chip {
-      display:inline-flex; align-items:center; gap:6px; padding:7px 13px;
-      border-radius:999px; border:1.5px solid var(--border2); background:var(--surface2);
-      cursor:pointer; font-size:13px; color:var(--text2);
-      transition:all 0.15s; user-select:none; -webkit-tap-highlight-color:transparent;
+      display:flex; align-items:center; gap:12px;
+      padding:11px 14px;
+      border-bottom:1px solid var(--border);
+      background:transparent;
+      cursor:pointer; font-size:14px; color:var(--text2);
+      transition:background 0.12s, color 0.12s;
+      user-select:none; -webkit-tap-highlight-color:transparent;
     }
-    .ex-chip.selected { background:var(--yellow-lt); border-color:var(--yellow); color:var(--yellow); }
-    .chip-check { width:14px; height:14px; border-radius:50%; border:1.5px solid var(--border2); flex-shrink:0; transition:all 0.15s; }
-    .ex-chip.selected .chip-check { background:var(--yellow); border-color:var(--yellow); }
+    .ex-chip:first-child { border-radius:var(--radius) var(--radius) 0 0; }
+    .ex-chip:last-child  { border-bottom:none; border-radius:0 0 var(--radius) var(--radius); }
+    .ex-chip:only-child  { border-radius:var(--radius); }
+    .ex-chip:hover       { background:var(--bg2); }
+    .ex-chip.selected    { background:var(--yellow-lt); color:var(--yellow); }
+    .chip-check {
+      width:20px; height:20px; border-radius:50%;
+      border:1.5px solid var(--border2); flex-shrink:0;
+      transition:all 0.15s; display:flex; align-items:center; justify-content:center;
+    }
+    .ex-chip.selected .chip-check {
+      background:var(--yellow); border-color:var(--yellow);
+    }
+    .ex-chip.selected .chip-check::after {
+      content:''; display:block; width:6px; height:10px;
+      border:2px solid var(--bg); border-top:none; border-left:none;
+      transform:rotate(45deg) translateY(-1px);
+    }
 
-    /* ── Exercise entries ── */
+    /* Bloque de categoría en el selector */
+    .cat-block {
+      background:var(--surface);
+      border:1.5px solid var(--border);
+      border-radius:var(--radius-lg);
+      margin-bottom:10px;
+      overflow:hidden;
+    }
+    .cat-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:8px 14px;
+      background:var(--bg3);
+      border-bottom:1px solid var(--border);
+    }
+    .cat-header-title {
+      font-size:11px; font-weight:700; color:var(--text2);
+      letter-spacing:0.10em; text-transform:uppercase;
+    }
+    .cat-header-count {
+      font-size:11px; color:var(--yellow); font-weight:600;
+    }
+
+    /* ── Exercise entries — layout vertical centrado ── */
     .ex-entry { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius-lg); margin-bottom:8px; overflow:hidden; transition:border-color 0.15s; }
     .ex-entry-hdr { padding:13px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; -webkit-tap-highlight-color:transparent; }
     .ex-entry-hdr:hover { background:var(--bg2); }
@@ -179,6 +219,22 @@
     .ex-body { display:none; padding:10px 14px 14px; border-top:1.5px solid var(--border); background:var(--bg2); }
     .ex-body.open { display:block; }
     .fields-3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:8px; }
+
+    /* ── Warmup check button ── */
+    .ex-warmup { border-color:rgba(245,197,24,0.15); }
+    .warmup-check-btn {
+      width:36px; height:36px; border-radius:50%; flex-shrink:0;
+      border:2px solid var(--border2); background:transparent;
+      color:transparent; font-size:16px; font-weight:700;
+      cursor:pointer; font-family:var(--font);
+      transition:all 0.15s; -webkit-tap-highlight-color:transparent;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .warmup-check-btn:hover { border-color:var(--yellow); }
+    .warmup-check-btn.done {
+      background:var(--yellow); border-color:var(--yellow);
+      color:var(--bg); box-shadow:0 2px 8px rgba(245,197,24,0.35);
+    }
 
     /* ── Summary ── */
     .summary-row { display:flex; justify-content:space-between; align-items:baseline; padding:9px 0; border-bottom:1px solid var(--border); font-size:13px; }
@@ -522,6 +578,7 @@ let selected    = new Set();
 let openEntry   = null;
 let openHCard   = null;
 let pendingDeleteId = null;
+let warmupDone = {}; // tracks warmup check state by ex.id
 
 // ── UTILIDADES ───────────────────────────────────────────────
 function goTo(id) {
@@ -626,27 +683,46 @@ function renderChips() {
   const cats = [...new Set(EXERCISES.map(e => e.cat))];
   let html = '';
   cats.forEach(cat => {
-    html += `<div class="section-label">${cat}</div><div class="chips-wrap">`;
-    EXERCISES.filter(e => e.cat === cat).forEach(ex => {
+    const exsInCat = EXERCISES.filter(e => e.cat === cat);
+    const selCount = exsInCat.filter(e => selected.has(e.id)).length;
+    html += `<div class="cat-block">
+      <div class="cat-header">
+        <span class="cat-header-title">${cat}</span>
+        ${selCount > 0 ? `<span class="cat-header-count">${selCount} seleccionado${selCount>1?'s':''}</span>` : ''}
+      </div>
+      <div class="chips-wrap">`;
+    exsInCat.forEach(ex => {
       const sel = selected.has(ex.id);
       html += `<div class="ex-chip${sel?' selected':''}" id="chip-${ex.id}" onclick="toggleChip('${ex.id}')">
-        <span class="chip-check"></span>${ex.nombre}</div>`;
+        <span class="chip-check"></span>
+        <span>${ex.nombre}</span>
+      </div>`;
     });
-    html += '</div>';
+    html += `</div></div>`;
   });
   document.getElementById('chips-container').innerHTML = html;
 }
 function toggleChip(id) {
   selected.has(id) ? selected.delete(id) : selected.add(id);
-  document.getElementById('chip-'+id).classList.toggle('selected', selected.has(id));
+  renderChips();
 }
 function selectAll() { EXERCISES.forEach(e => selected.add(e.id)); renderChips(); }
 function clearAll()  { selected.clear(); renderChips(); }
+
+function toggleWarmup(id) {
+  warmupDone[id] = warmupDone[id] === false ? true : false;
+  const btn = document.getElementById('wbtn-'+id);
+  const dot = document.getElementById('dot-'+id);
+  const done = warmupDone[id] !== false;
+  if (btn) { btn.classList.toggle('done', done); btn.textContent = done ? '✓' : ''; }
+  if (dot) dot.className = 'status-dot' + (done ? ' ok' : '');
+}
 
 // ── PASO 2: REGISTRO ──────────────────────────────────────────
 function goToRegister() {
   if (!selected.size) { banner('banner-chips','Selecciona al menos un ejercicio','err'); return; }
   hideBanner('banner-chips');
+  warmupDone = {}; // reset warmup state
   renderEntries();
   document.getElementById('paso-1').style.display = 'none';
   document.getElementById('paso-2').style.display = 'block';
@@ -664,20 +740,21 @@ function renderEntries() {
     html += `<div class="section-label">${cat}</div>`;
     sel.filter(e => e.cat === cat).forEach(ex => {
       if (cat === 'Calentamiento') {
+        const isDone = warmupDone[ex.id] !== false; // true por defecto
         html += `
-        <div class="ex-entry">
-          <div class="ex-entry-hdr" onclick="toggleEntry('${ex.id}')">
+        <div class="ex-entry ex-warmup" id="entry-${ex.id}">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;">
             <div class="ex-left">
-              <div class="status-dot ok" id="dot-${ex.id}"></div>
+              <div class="status-dot${isDone?' ok':''}" id="dot-${ex.id}"></div>
               <span class="ex-name">${ex.nombre}</span>
             </div>
-            <span class="chevron" id="chev-${ex.id}">›</span>
-          </div>
-          <div class="ex-body" id="body-${ex.id}">
-            <div style="display:flex;align-items:center;gap:12px;padding:6px 0;">
-              <input type="checkbox" id="done-${ex.id}" checked onchange="checkDot('${ex.id}')" style="appearance:checkbox;-webkit-appearance:checkbox;width:20px;height:20px;accent-color:var(--yellow);cursor:pointer;" />
-              <label for="done-${ex.id}" class="field-label" style="margin-bottom:0;cursor:pointer;font-size:14px;color:var(--text);">Realizado</label>
-            </div>
+            <button
+              class="warmup-check-btn${isDone?' done':''}"
+              id="wbtn-${ex.id}"
+              onclick="toggleWarmup('${ex.id}')"
+              aria-label="Marcar como realizado">
+              ${isDone ? '✓' : ''}
+            </button>
           </div>
         </div>`;
       } else {
@@ -724,7 +801,7 @@ function checkDot(id) {
   const ex = EXERCISES.find(e => e.id === id);
   let filled = false;
   if (ex && ex.cat === 'Calentamiento') {
-    filled = document.getElementById('done-'+id)?.checked;
+    filled = warmupDone[id] !== false;
   } else {
     filled = ['p','s','r','o'].some(f => document.getElementById(f+'-'+id)?.value?.trim());
   }
@@ -739,7 +816,7 @@ function getData(id) {
       series: '',
       reps:   '',
       obs:    '',
-      realizado: document.getElementById('done-'+id)?.checked ? 'Sí' : ''
+      realizado: warmupDone[id] !== false ? 'Sí' : ''
     };
   }
   return {
