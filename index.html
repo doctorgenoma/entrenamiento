@@ -392,6 +392,18 @@
       <p>Clientes con sesiones guardadas localmente.</p>
       <div id="trainer-clients-list"></div>
     </div>
+
+    <!-- COPIA DE SEGURIDAD -->
+    <div class="export-box" style="margin-top:12px;">
+      <h3>&#128190; Copia de seguridad</h3>
+      <p>Exporta todos los datos en JSON para restaurarlos en cualquier momento o dispositivo.</p>
+      <button class="btn btn-primary" onclick="exportarBackup()" style="margin-bottom:8px;">&#8595; Exportar copia de seguridad</button>
+      <label class="btn btn-ghost" style="border:1.5px dashed var(--border2);text-align:center;cursor:pointer;" for="importar-backup-input">
+        &#8593; Importar copia de seguridad
+      </label>
+      <input type="file" id="importar-backup-input" accept=".json" style="display:none;" onchange="importarBackup(event)" />
+      <div class="status-banner" id="banner-backup" style="margin-top:8px;margin-bottom:0;"></div>
+    </div>
   </div>
 
   <div class="screen" id="s-panel">
@@ -829,7 +841,7 @@ function getData(id) {
 }
 
 // ── ENVÍO DE SESIÓN ───────────────────────────────────────────
-async function submitSession() {
+function submitSession() {
   const sel = EXERCISES.filter(e => selected.has(e.id));
   const ejercicios = sel.map(ex => ({ ...ex, ...getData(ex.id) }));
   const fecha = fechaAhora();
@@ -844,11 +856,16 @@ async function submitSession() {
     createdAt:  Date.now()
   };
 
+  // 1. Guardar local siempre (instantáneo, no puede fallar la navegación)
   guardarLocal(session);
-  banner('banner-submit','Guardando en Google Sheets...','loading');
-  await enviarASheets(session);
-  hideBanner('banner-submit');
+
+  // 2. Mostrar confirmación inmediatamente — no esperar a Sheets
   mostrarConfirmacion(session);
+
+  // 3. Enviar a Sheets en segundo plano sin bloquear
+  if (SCRIPT_URL && SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
+    enviarASheets(session).catch(() => {});
+  }
 }
 
 // ── LOCAL STORAGE ─────────────────────────────────────────────
@@ -1195,6 +1212,57 @@ function confirmDelete() {
   closeDeleteOverlay();
   // Recargar stats
   setTimeout(() => cargarHistorial(), 300);
+}
+
+// ── COPIA DE SEGURIDAD ────────────────────────────────────────
+function exportarBackup() {
+  const backup = { version: 1, fecha: new Date().toISOString(), datos: {} };
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('pt_')) {
+      backup.datos[key] = JSON.parse(localStorage.getItem(key) || '[]');
+    }
+  }
+  const total = Object.values(backup.datos).reduce((a,v)=>a+v.length,0);
+  if (!total) { banner('banner-backup','No hay datos para exportar','err'); return; }
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `backup_entrenamiento_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  banner('banner-backup', `Backup exportado: ${total} sesiones de ${Object.keys(backup.datos).length} clientes`, 'ok');
+}
+
+function importarBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const backup = JSON.parse(e.target.result);
+      if (!backup.datos) throw new Error('Formato no válido');
+      let importados = 0, clientes = 0;
+      Object.entries(backup.datos).forEach(([key, sesiones]) => {
+        if (!key.startsWith('pt_') || !Array.isArray(sesiones)) return;
+        // Merge con datos existentes, evitar duplicados por id
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+        const existingIds = new Set(existing.map(s => s.id));
+        const nuevas = sesiones.filter(s => !existingIds.has(s.id));
+        const merged = [...nuevas, ...existing].slice(0,100);
+        localStorage.setItem(key, JSON.stringify(merged));
+        importados += nuevas.length;
+        clientes++;
+      });
+      banner('banner-backup', `Backup importado: ${importados} sesiones nuevas de ${clientes} clientes`, 'ok');
+      event.target.value = '';
+      cargarPanelEntrenador();
+    } catch(err) {
+      banner('banner-backup', 'Error al importar: archivo no válido', 'err');
+    }
+  };
+  reader.readAsText(file);
 }
 </script>
 </body>
