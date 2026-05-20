@@ -373,7 +373,7 @@
 
     <div class="export-box">
       <h3>Exportar todos los clientes</h3>
-      <p>Descarga todos los registros guardados en este dispositivo en un único archivo CSV, ordenados por cliente y fecha.</p>
+      <p>Descarga todos los registros de Google Sheets en un único CSV ordenado por cliente y fecha.</p>
       <button class="btn btn-primary" onclick="exportarTodosCSV()">⬇ Descargar CSV completo</button>
     </div>
 
@@ -388,20 +388,19 @@
     </div>
 
     <div class="export-box" style="margin-top:12px;">
-      <h3>Clientes registrados en este dispositivo</h3>
-      <p>Clientes con sesiones guardadas localmente.</p>
+      <h3>Clientes registrados</h3>
+      <p>Clientes con sesiones en Google Sheets.</p>
       <div id="trainer-clients-list"></div>
     </div>
 
-    <!-- COPIA DE SEGURIDAD -->
     <div class="export-box" style="margin-top:12px;">
       <h3>&#128190; Copia de seguridad</h3>
-      <p>Exporta todos los datos en JSON para restaurarlos en cualquier momento o dispositivo.</p>
-      <button class="btn btn-primary" onclick="exportarBackup()" style="margin-bottom:8px;">&#8595; Exportar copia de seguridad</button>
-      <label class="btn btn-ghost" style="border:1.5px dashed var(--border2);text-align:center;cursor:pointer;" for="importar-backup-input">
-        &#8593; Importar copia de seguridad
+      <p>Exporta o importa todos los datos en formato JSON como respaldo adicional.</p>
+      <button class="btn btn-primary" onclick="exportarBackup()" style="margin-bottom:8px;">&#8595; Exportar copia JSON</button>
+      <label class="btn btn-ghost" style="border:1.5px dashed var(--border2);text-align:center;cursor:pointer;" for="import-backup-file">
+        &#8593; Importar copia JSON
       </label>
-      <input type="file" id="importar-backup-input" accept=".json" style="display:none;" onchange="importarBackup(event)" />
+      <input type="file" id="import-backup-file" accept=".json" style="display:none;" onchange="importarBackup(event)" />
       <div class="status-banner" id="banner-backup" style="margin-top:8px;margin-bottom:0;"></div>
     </div>
   </div>
@@ -463,8 +462,9 @@
     <div class="tab-pane" id="pane-exportar">
       <div class="export-box">
         <h3>Descargar mis sesiones en CSV</h3>
-        <p>Descarga todas tus sesiones guardadas en este dispositivo como archivo CSV. Puedes abrirlo en Excel o Google Sheets.</p>
+        <p>Descarga todas tus sesiones desde Google Sheets como archivo CSV.</p>
         <button class="btn btn-primary" onclick="exportarClientePropio()">⬇ Descargar mis datos</button>
+        <div class="status-banner" id="banner-exportar" style="margin-top:8px;margin-bottom:0;"></div>
       </div>
       <div class="export-box" style="margin-top:12px;">
         <h3>¿Qué contiene el archivo?</h3>
@@ -511,88 +511,103 @@
 </div>
 
 <script>
-// ⚠️ PEGA AQUÍ TU URL DE APPS SCRIPT
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxOJrRURtrN9flPBRf7mIe2jSsZgxaUcf_DSQrmtjxAVkqS87df9mlNr7Fw_2sxmAdD3w/exec";
+// ─────────────────────────────────────────────────────────────
+// CONFIGURACIÓN — cambia solo estas dos líneas
+// ─────────────────────────────────────────────────────────────
+const SCRIPT_URL       = "https://script.google.com/macros/s/AKfycbxOJrRURtrN9flPBRf7mIe2jSsZgxaUcf_DSQrmtjxAVkqS87df9mlNr7Fw_2sxmAdD3w/exec";
+const TRAINER_PASSWORD = 'entrenador2026';
 
-// ── EJERCICIOS ───────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// EJERCICIOS
+// ─────────────────────────────────────────────────────────────
 const EXERCISES = [
-  {id:'mov-hombros',     nombre:'Movilidad hombros',         cat:'Calentamiento'},
-  {id:'escap-barra',     nombre:'Escápulas (en barra)',      cat:'Calentamiento'},
-  {id:'kipping-barra',   nombre:'Kipping (en barra)',        cat:'Calentamiento'},
-  {id:'worm-walk',       nombre:'Andar como gusano',         cat:'Calentamiento'},
-  {id:'mov-legs',        nombre:'Movilidad piernas',         cat:'Calentamiento'},
-  {id:'baby-burpees',    nombre:'Baby burpees',              cat:'Calentamiento'},
-  {id:'box-ups',         nombre:'Subida al cajón',           cat:'Calentamiento'},
-  {id:'squat-clean',     nombre:'Squat clean',               cat:'Multiarticular'},
-  {id:'power-clean',     nombre:'Power clean',               cat:'Multiarticular'},
-  {id:'jerk',            nombre:'Jerk',                      cat:'Multiarticular'},
-  {id:'split-jerk',      nombre:'SplitJerk',                 cat:'Multiarticular'},
-  {id:'squat-snatch',    nombre:'Squat Snatch',              cat:'Multiarticular'},
-  {id:'power-snatch',    nombre:'Power Snatch',              cat:'Multiarticular'},
-  {id:'dumb-snatch',     nombre:'Snatch con mancuerna',      cat:'Multiarticular'},
-  {id:'peso-muerto',     nombre:'Peso muerto',               cat:'Multiarticular'},
-  {id:'sent-bulg',       nombre:'Sentadillas búlgaras',      cat:'Multiarticular'},
-  {id:'sent-norm',       nombre:'Sentadillas normales',      cat:'Multiarticular'},
-  {id:'zancadas',        nombre:'Zancadas',                  cat:'Multiarticular'},
-  {id:'trineo',          nombre:'Empujar trineo',            cat:'Multiarticular'},
-  {id:'press-h-manc',    nombre:'Press hombro (mancuernas)', cat:'Multiarticular'},
-  {id:'press-h-bar',     nombre:'Press hombro (barra)',      cat:'Multiarticular'},
-  {id:'press-h-maq',     nombre:'Press hombro (máquina)',    cat:'Multiarticular'},
-  {id:'jalones',         nombre:'Jalones en polea',          cat:'Multiarticular'},
-  {id:'remo-polea',      nombre:'Remo en polea',             cat:'Multiarticular'},
-  {id:'remo-maq',        nombre:'Remo en máquina',           cat:'Multiarticular'},
-  {id:'dominadas',       nombre:'Dominadas',                 cat:'Multiarticular'},
-  {id:'rings-pullup',    nombre:'Dominadas en anillas',      cat:'Multiarticular'},
-  {id:'remo-manc',       nombre:'Remo con mancuernas',       cat:'Multiarticular'},
-  {id:'press-banca',     nombre:'Press de banca',            cat:'Multiarticular'},
-  {id:'press-banca-maq', nombre:'Press banca (máquina)',     cat:'Multiarticular'},
-  {id:'rings-press',     nombre:'Ring dips',                 cat:'Multiarticular'},
-  {id:'push-ups',        nombre:'Flexiones',                 cat:'Multiarticular'},
-  {id:'curl-biceps',     nombre:'Curl de bíceps',            cat:'Accesorio'},
-  {id:'triceps',         nombre:'Tríceps',                   cat:'Accesorio'},
-  {id:'escap-polea',     nombre:'Escápulas (en polea)',      cat:'Accesorio'},
-  {id:'aductores',       nombre:'Aductores',                 cat:'Accesorio'},
-  {id:'abductores',      nombre:'Abductores',                cat:'Accesorio'},
-  {id:'hip-thrusts',     nombre:'Hip thrusts (pelvis)',      cat:'Accesorio'},
+  {id:'mov-hombros',     nombre:'Movilidad hombros',            cat:'Calentamiento'},
+  {id:'escap-barra',     nombre:'Escápulas (en barra)',         cat:'Calentamiento'},
+  {id:'kipping-barra',   nombre:'Kipping (en barra)',           cat:'Calentamiento'},
+  {id:'worm-walk',       nombre:'Andar como gusano',            cat:'Calentamiento'},
+  {id:'mov-legs',        nombre:'Movilidad piernas',            cat:'Calentamiento'},
+  {id:'baby-burpees',    nombre:'Baby burpees',                 cat:'Calentamiento'},
+  {id:'box-ups',         nombre:'Subida al cajón',              cat:'Calentamiento'},
+  {id:'squat-clean',     nombre:'Squat clean',                  cat:'Multiarticular'},
+  {id:'power-clean',     nombre:'Power clean',                  cat:'Multiarticular'},
+  {id:'jerk',            nombre:'Jerk',                         cat:'Multiarticular'},
+  {id:'split-jerk',      nombre:'SplitJerk',                    cat:'Multiarticular'},
+  {id:'squat-snatch',    nombre:'Squat Snatch',                 cat:'Multiarticular'},
+  {id:'power-snatch',    nombre:'Power Snatch',                 cat:'Multiarticular'},
+  {id:'dumb-snatch',     nombre:'Snatch con mancuerna',         cat:'Multiarticular'},
+  {id:'peso-muerto',     nombre:'Peso muerto',                  cat:'Multiarticular'},
+  {id:'sent-bulg',       nombre:'Sentadillas búlgaras',         cat:'Multiarticular'},
+  {id:'sent-norm',       nombre:'Sentadillas normales',         cat:'Multiarticular'},
+  {id:'zancadas',        nombre:'Zancadas',                     cat:'Multiarticular'},
+  {id:'trineo',          nombre:'Empujar trineo',               cat:'Multiarticular'},
+  {id:'press-h-manc',    nombre:'Press hombro (mancuernas)',    cat:'Multiarticular'},
+  {id:'press-h-bar',     nombre:'Press hombro (barra)',         cat:'Multiarticular'},
+  {id:'press-h-maq',     nombre:'Press hombro (máquina)',       cat:'Multiarticular'},
+  {id:'jalones',         nombre:'Jalones en polea',             cat:'Multiarticular'},
+  {id:'remo-polea',      nombre:'Remo en polea',                cat:'Multiarticular'},
+  {id:'remo-maq',        nombre:'Remo en máquina',              cat:'Multiarticular'},
+  {id:'dominadas',       nombre:'Dominadas',                    cat:'Multiarticular'},
+  {id:'rings-pullup',    nombre:'Dominadas en anillas',         cat:'Multiarticular'},
+  {id:'remo-manc',       nombre:'Remo con mancuernas',          cat:'Multiarticular'},
+  {id:'press-banca',     nombre:'Press de banca',               cat:'Multiarticular'},
+  {id:'press-banca-maq', nombre:'Press banca (máquina)',        cat:'Multiarticular'},
+  {id:'rings-press',     nombre:'Ring dips',                    cat:'Multiarticular'},
+  {id:'push-ups',        nombre:'Flexiones',                    cat:'Multiarticular'},
+  {id:'curl-biceps',     nombre:'Curl de bíceps',               cat:'Accesorio'},
+  {id:'triceps',         nombre:'Tríceps',                      cat:'Accesorio'},
+  {id:'escap-polea',     nombre:'Escápulas (en polea)',         cat:'Accesorio'},
+  {id:'aductores',       nombre:'Aductores',                    cat:'Accesorio'},
+  {id:'abductores',      nombre:'Abductores',                   cat:'Accesorio'},
+  {id:'hip-thrusts',     nombre:'Hip thrusts (pelvis)',         cat:'Accesorio'},
   {id:'elev-h-manc',     nombre:'Elevaciones laterales (manc)', cat:'Accesorio'},
   {id:'elevf-h-manc',    nombre:'Elevaciones frontales (manc)', cat:'Accesorio'},
-  {id:'hollow-rock',     nombre:'Hollow rock',               cat:'Accesorio'},
-  {id:'burpees',         nombre:'Burpees',                   cat:'Otros-básicos'},
-  {id:'burpees-otbox',   nombre:'Burpees pasando cajón',     cat:'Otros-básicos'},
-  {id:'burpees-otbar',   nombre:'Burpees pasando barra',     cat:'Otros-básicos'},
-  {id:'burpees-pullup',  nombre:'Burpees con dominada',      cat:'Otros-básicos'},
-  {id:'box-jumps',       nombre:'Saltos al cajón',           cat:'Otros-básicos'},
-  {id:'box-jumps-over',  nombre:'Saltos pasando cajón',      cat:'Otros-básicos'},
-  {id:'dumbells-otb',    nombre:'Pase de cajón con manc',    cat:'Otros-básicos'},
-  {id:'ket-swings',      nombre:'Kettelbell swings',         cat:'Otros-básicos'},
-  {id:'ket-snatch',      nombre:'Kettelbell snatch',         cat:'Otros-básicos'},
-  {id:'ket-squat',       nombre:'Kettelbell squats',         cat:'Otros-básicos'},
-  {id:'rope-climb',      nombre:'Subidas a la cuerda',       cat:'Gimnásticos'},
-  {id:'pino-pared',      nombre:'Pino en pared',             cat:'Gimnásticos'},
-  {id:'wall-walk',       nombre:'Subidas a pared',           cat:'Gimnásticos'},
-  {id:'hspu',            nombre:'Handstand push ups',        cat:'Gimnásticos'},
-  {id:'toes-to-bar',     nombre:'Toes to bar',               cat:'Gimnásticos'},
-  {id:'planks',          nombre:'Planchas',                  cat:'Gimnásticos'},
-  {id:'comba',           nombre:'Saltos a la comba',         cat:'Gimnásticos'},
-  {id:'muscle-ups',      nombre:'Muscle ups',                cat:'Gimnásticos'},
-  {id:'ring-muscle-ups', nombre:'Muscle ups en anillas',     cat:'Gimnásticos'},
-  {id:'bear-walks',      nombre:'Caminar de oso',            cat:'Gimnásticos'},
-  {id:'bike',            nombre:'Bicicleta',                 cat:'Cardio'},
-  {id:'row',             nombre:'Remo',                      cat:'Cardio'},
-  {id:'skierg',          nombre:'Ski',                       cat:'Cardio'},
-  {id:'swim',            nombre:'Natación',                  cat:'Cardio'},
-  {id:'stretching',      nombre:'Estiramientos',             cat:'Cardio'},
+  {id:'hollow-rock',     nombre:'Hollow rock',                  cat:'Accesorio'},
+  {id:'burpees',         nombre:'Burpees',                      cat:'Otros-básicos'},
+  {id:'burpees-otbox',   nombre:'Burpees pasando cajón',        cat:'Otros-básicos'},
+  {id:'burpees-otbar',   nombre:'Burpees pasando barra',        cat:'Otros-básicos'},
+  {id:'burpees-pullup',  nombre:'Burpees con dominada',         cat:'Otros-básicos'},
+  {id:'box-jumps',       nombre:'Saltos al cajón',              cat:'Otros-básicos'},
+  {id:'box-jumps-over',  nombre:'Saltos pasando cajón',         cat:'Otros-básicos'},
+  {id:'dumbells-otb',    nombre:'Pase de cajón con manc',       cat:'Otros-básicos'},
+  {id:'ket-swings',      nombre:'Kettelbell swings',            cat:'Otros-básicos'},
+  {id:'ket-snatch',      nombre:'Kettelbell snatch',            cat:'Otros-básicos'},
+  {id:'ket-squat',       nombre:'Kettelbell squats',            cat:'Otros-básicos'},
+  {id:'rope-climb',      nombre:'Subidas a la cuerda',          cat:'Gimnásticos'},
+  {id:'pino-pared',      nombre:'Pino en pared',                cat:'Gimnásticos'},
+  {id:'wall-walk',       nombre:'Subidas a pared',              cat:'Gimnásticos'},
+  {id:'hspu',            nombre:'Handstand push ups',           cat:'Gimnásticos'},
+  {id:'toes-to-bar',     nombre:'Toes to bar',                  cat:'Gimnásticos'},
+  {id:'planks',          nombre:'Planchas',                     cat:'Gimnásticos'},
+  {id:'comba',           nombre:'Saltos a la comba',            cat:'Gimnásticos'},
+  {id:'muscle-ups',      nombre:'Muscle ups',                   cat:'Gimnásticos'},
+  {id:'ring-muscle-ups', nombre:'Muscle ups en anillas',        cat:'Gimnásticos'},
+  {id:'bear-walks',      nombre:'Caminar de oso',               cat:'Gimnásticos'},
+  {id:'bike',            nombre:'Bicicleta',                    cat:'Cardio'},
+  {id:'row',             nombre:'Remo',                         cat:'Cardio'},
+  {id:'skierg',          nombre:'Ski',                          cat:'Cardio'},
+  {id:'swim',            nombre:'Natación',                     cat:'Cardio'},
+  {id:'stretching',      nombre:'Estiramientos',                cat:'Cardio'},
 ];
-  
-// ── ESTADO ───────────────────────────────────────────────────
-let clientName  = '';
-let selected    = new Set();
-let openEntry   = null;
-let openHCard   = null;
-let pendingDeleteId = null;
-let warmupDone = {}; // tracks warmup check state by ex.id
 
-// ── UTILIDADES ───────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// ESTADO
+// ─────────────────────────────────────────────────────────────
+let clientName      = '';
+let selected        = new Set();
+let openEntry       = null;
+let openHCard       = null;
+let pendingDeleteId = null;
+let warmupDone      = {};
+let trainerOpenClient = null;
+// Caché en memoria (dura mientras la sesión de navegador esté abierta)
+const _cache = {};
+function cacheSet(k,v){ _cache[k] = {v, ts: Date.now()}; }
+function cacheGet(k, ttl=300000){ const e=_cache[k]; return e&&(Date.now()-e.ts<ttl)?e.v:null; }
+function cacheDel(k){ delete _cache[k]; }
+
+// ─────────────────────────────────────────────────────────────
+// UTILIDADES
+// ─────────────────────────────────────────────────────────────
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -601,75 +616,66 @@ function goTo(id) {
 function showTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-  document.getElementById('tab-'  + name).classList.add('active');
-  document.getElementById('pane-' + name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('pane-'+name).classList.add('active');
   if (name === 'historial') cargarHistorial();
 }
-
 function banner(id, msg, type='loading') {
   const el = document.getElementById(id);
-  el.innerHTML = type === 'loading' ? `<span class="spinner"></span>${msg}` : msg;
+  if (!el) return;
+  el.innerHTML = type==='loading' ? `<span class="spinner"></span>${msg}` : msg;
   el.className = `status-banner show ${type}`;
-  if (type !== 'loading') setTimeout(() => el.classList.remove('show'), 5000);
+  if (type !== 'loading') setTimeout(()=>el.classList.remove('show'), 5000);
 }
-function hideBanner(id) { document.getElementById(id).classList.remove('show'); }
-function initials(n)    { return n.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
-function genId()        { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
-function toBase64(obj)  { return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }
+function hideBanner(id){ const el=document.getElementById(id); if(el) el.classList.remove('show'); }
+function initials(n){ return n.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function toBase64(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
 
-// Formatea cualquier fecha (ISO, dd/mm/yyyy, Date…) a "Lun 5 may 2026 · 22:00"
 function formatFecha(raw) {
   if (!raw) return '—';
   let d;
-  if (typeof raw === 'string' && /^\d{2}\/\d{2}\/\d{4}/.test(raw)) {
-    // Formato dd/mm/yyyy [hh:mm] — construir manualmente para evitar zona horaria
-    const [datePart, timePart] = raw.split(' ');
-    const [dd, mm, yyyy] = datePart.split('/');
-    d = timePart ? new Date(`${yyyy}-${mm}-${dd}T${timePart}`) : new Date(`${yyyy}-${mm}-${dd}T12:00:00`);
-  } else {
-    d = new Date(raw);
-  }
+  if (typeof raw==='string' && /^\d{2}\/\d{2}\/\d{4}/.test(raw)) {
+    const [dp,tp] = raw.split(' ');
+    const [dd,mm,yyyy] = dp.split('/');
+    d = tp ? new Date(`${yyyy}-${mm}-${dd}T${tp}`) : new Date(`${yyyy}-${mm}-${dd}T12:00:00`);
+  } else { d = new Date(raw); }
   if (isNaN(d)) return String(raw);
-  const fecha = d.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
-  const hora  = d.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
-  return `${fecha} · ${hora}`;
+  return d.toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short',year:'numeric'})
+    + ' · ' + d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
 }
-
-// Fecha+hora actual formateada para guardar
 function fechaAhora() {
-  const d = new Date();
-  const dd   = String(d.getDate()).padStart(2,'0');
-  const mm   = String(d.getMonth()+1).padStart(2,'0');
-  const yyyy = d.getFullYear();
-  const hh   = String(d.getHours()).padStart(2,'0');
-  const min  = String(d.getMinutes()).padStart(2,'0');
-  return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+  const d=new Date();
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 
-// ── ENVÍO A SHEETS con iframe oculto (sin restricciones CORS) ──
-function enviarASheets(session) {
-  return new Promise((resolve) => {
-    if (!SCRIPT_URL || SCRIPT_URL === 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
-      resolve({ ok: false, reason: 'no_url' });
-      return;
-    }
-    const encoded = toBase64(session);
-    const url = `${SCRIPT_URL}?action=guardar&data=${encodeURIComponent(encoded)}`;
+// ─────────────────────────────────────────────────────────────
+// COMUNICACIÓN CON SHEETS
+// ─────────────────────────────────────────────────────────────
+// GET con fetch (lectura — necesita respuesta)
+async function sheetsGet(params) {
+  const url = SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+  const r = await fetch(url);
+  return r.json();
+}
 
-    // iframe oculto — no tiene restricciones CORS y ejecuta el script de forma fiable
+// GET vía iframe (escritura/borrado — no necesita respuesta legible)
+function sheetsPost(params) {
+  return new Promise(resolve => {
+    const url = SCRIPT_URL + '?' + new URLSearchParams(params).toString();
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
     iframe.src = url;
-    iframe.onload  = () => { setTimeout(() => iframe.remove(), 1000); resolve({ ok: true }); };
-    iframe.onerror = () => { setTimeout(() => iframe.remove(), 1000); resolve({ ok: true }); };
+    const done = () => { setTimeout(()=>{ try{iframe.remove()}catch(e){} },1000); resolve(); };
+    iframe.onload = done; iframe.onerror = done;
     document.body.appendChild(iframe);
-
-    // Timeout de seguridad: 10 segundos
-    setTimeout(() => { iframe.remove(); resolve({ ok: true, reason: 'timeout' }); }, 10000);
+    setTimeout(done, 10000);
   });
 }
 
-// ── LOGIN ─────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// LOGIN
+// ─────────────────────────────────────────────────────────────
 function loginCliente() {
   const val = document.getElementById('client-name').value.trim();
   if (!val) { banner('banner-login','Por favor escribe tu nombre','err'); return; }
@@ -687,91 +693,87 @@ function logout() {
   goTo('s-login');
 }
 document.getElementById('client-name').addEventListener('keydown', e => {
-  if (e.key === 'Enter') loginCliente();
+  if (e.key==='Enter') loginCliente();
 });
 
-// ── PASO 1: CHIPS ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// CHIPS (Paso 1)
+// ─────────────────────────────────────────────────────────────
 function renderChips() {
-  const cats = [...new Set(EXERCISES.map(e => e.cat))];
+  const cats = [...new Set(EXERCISES.map(e=>e.cat))];
   let html = '';
   cats.forEach(cat => {
-    const exsInCat = EXERCISES.filter(e => e.cat === cat);
-    const selCount = exsInCat.filter(e => selected.has(e.id)).length;
+    const exs = EXERCISES.filter(e=>e.cat===cat);
+    const n   = exs.filter(e=>selected.has(e.id)).length;
     html += `<div class="cat-block">
       <div class="cat-header">
         <span class="cat-header-title">${cat}</span>
-        ${selCount > 0 ? `<span class="cat-header-count">${selCount} seleccionado${selCount>1?'s':''}</span>` : ''}
+        ${n>0?`<span class="cat-header-count">${n} seleccionado${n>1?'s':''}</span>`:''}
       </div>
       <div class="chips-wrap">`;
-    exsInCat.forEach(ex => {
+    exs.forEach(ex => {
       const sel = selected.has(ex.id);
       html += `<div class="ex-chip${sel?' selected':''}" id="chip-${ex.id}" onclick="toggleChip('${ex.id}')">
-        <span class="chip-check"></span>
-        <span>${ex.nombre}</span>
-      </div>`;
+        <span class="chip-check"></span><span>${ex.nombre}</span></div>`;
     });
     html += `</div></div>`;
   });
   document.getElementById('chips-container').innerHTML = html;
 }
 function toggleChip(id) {
-  selected.has(id) ? selected.delete(id) : selected.add(id);
+  selected.has(id)?selected.delete(id):selected.add(id);
   renderChips();
 }
-function selectAll() { EXERCISES.forEach(e => selected.add(e.id)); renderChips(); }
-function clearAll()  { selected.clear(); renderChips(); }
-
+function selectAll(){ EXERCISES.forEach(e=>selected.add(e.id)); renderChips(); }
+function clearAll() { selected.clear(); renderChips(); }
 function toggleWarmup(id) {
-  warmupDone[id] = warmupDone[id] === false ? true : false;
-  const btn = document.getElementById('wbtn-'+id);
-  const dot = document.getElementById('dot-'+id);
-  const done = warmupDone[id] !== false;
-  if (btn) { btn.classList.toggle('done', done); btn.textContent = done ? '✓' : ''; }
-  if (dot) dot.className = 'status-dot' + (done ? ' ok' : '');
+  warmupDone[id] = warmupDone[id]===false ? true : false;
+  const btn=document.getElementById('wbtn-'+id);
+  const dot=document.getElementById('dot-'+id);
+  const done=warmupDone[id]!==false;
+  if(btn){ btn.classList.toggle('done',done); btn.textContent=done?'✓':''; }
+  if(dot) dot.className='status-dot'+(done?' ok':'');
 }
 
-// ── PASO 2: REGISTRO ──────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// REGISTRO (Paso 2)
+// ─────────────────────────────────────────────────────────────
 function goToRegister() {
-  if (!selected.size) { banner('banner-chips','Selecciona al menos un ejercicio','err'); return; }
+  if (!selected.size){ banner('banner-chips','Selecciona al menos un ejercicio','err'); return; }
   hideBanner('banner-chips');
-  warmupDone = {}; // reset warmup state
+  warmupDone = {};
   renderEntries();
-  document.getElementById('paso-1').style.display = 'none';
-  document.getElementById('paso-2').style.display = 'block';
+  document.getElementById('paso-1').style.display='none';
+  document.getElementById('paso-2').style.display='block';
   window.scrollTo(0,0);
 }
 function volverPaso1() {
-  document.getElementById('paso-2').style.display = 'none';
-  document.getElementById('paso-1').style.display = 'block';
+  document.getElementById('paso-2').style.display='none';
+  document.getElementById('paso-1').style.display='block';
 }
 function renderEntries() {
-  const sel  = EXERCISES.filter(e => selected.has(e.id));
-  const cats = [...new Set(sel.map(e => e.cat))];
-  let html = '';
+  const sel  = EXERCISES.filter(e=>selected.has(e.id));
+  const cats = [...new Set(sel.map(e=>e.cat))];
+  let html='';
   cats.forEach(cat => {
     html += `<div class="section-label">${cat}</div>`;
-    sel.filter(e => e.cat === cat).forEach(ex => {
-      if (cat === 'Calentamiento') {
-        const isDone = warmupDone[ex.id] !== false; // true por defecto
-        html += `
-        <div class="ex-entry ex-warmup" id="entry-${ex.id}">
+    sel.filter(e=>e.cat===cat).forEach(ex => {
+      if (cat==='Calentamiento') {
+        const isDone = warmupDone[ex.id]!==false;
+        html += `<div class="ex-entry ex-warmup" id="entry-${ex.id}">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;">
             <div class="ex-left">
               <div class="status-dot${isDone?' ok':''}" id="dot-${ex.id}"></div>
               <span class="ex-name">${ex.nombre}</span>
             </div>
-            <button
-              class="warmup-check-btn${isDone?' done':''}"
-              id="wbtn-${ex.id}"
-              onclick="toggleWarmup('${ex.id}')"
-              aria-label="Marcar como realizado">
-              ${isDone ? '✓' : ''}
+            <button class="warmup-check-btn${isDone?' done':''}" id="wbtn-${ex.id}"
+              onclick="toggleWarmup('${ex.id}')" aria-label="Marcar realizado">
+              ${isDone?'✓':''}
             </button>
           </div>
         </div>`;
       } else {
-        html += `
-        <div class="ex-entry">
+        html += `<div class="ex-entry">
           <div class="ex-entry-hdr" onclick="toggleEntry('${ex.id}')">
             <div class="ex-left">
               <div class="status-dot" id="dot-${ex.id}"></div>
@@ -797,172 +799,140 @@ function renderEntries() {
   });
   document.getElementById('register-container').innerHTML = html;
   openEntry = null;
-  const first = EXERCISES.find(e => selected.has(e.id));
-  if (first) toggleEntry(first.id);
+  const first = EXERCISES.find(e=>selected.has(e.id));
+  if(first) toggleEntry(first.id);
 }
 function toggleEntry(id) {
-  if (openEntry && openEntry !== id) {
+  if(openEntry&&openEntry!==id){
     document.getElementById('body-'+openEntry)?.classList.remove('open');
     document.getElementById('chev-'+openEntry)?.classList.remove('open');
   }
-  openEntry = id;
+  openEntry=id;
   document.getElementById('body-'+id)?.classList.toggle('open');
   document.getElementById('chev-'+id)?.classList.toggle('open');
 }
 function checkDot(id) {
-  const ex = EXERCISES.find(e => e.id === id);
-  let filled = false;
-  if (ex && ex.cat === 'Calentamiento') {
-    filled = warmupDone[id] !== false;
-  } else {
-    filled = ['p','s','r','o'].some(f => document.getElementById(f+'-'+id)?.value?.trim());
-  }
-  const dot = document.getElementById('dot-'+id);
-  if (dot) dot.className = 'status-dot' + (filled ? ' ok' : '');
+  const ex=EXERCISES.find(e=>e.id===id);
+  const filled = ex?.cat==='Calentamiento'
+    ? warmupDone[id]!==false
+    : ['p','s','r','o'].some(f=>document.getElementById(f+'-'+id)?.value?.trim());
+  const dot=document.getElementById('dot-'+id);
+  if(dot) dot.className='status-dot'+(filled?' ok':'');
 }
 function getData(id) {
-  const ex = EXERCISES.find(e => e.id === id);
-  if (ex && ex.cat === 'Calentamiento') {
-    return {
-      peso:   '',
-      series: '',
-      reps:   '',
-      obs:    '',
-      realizado: warmupDone[id] !== false ? 'Sí' : ''
-    };
-  }
+  const ex=EXERCISES.find(e=>e.id===id);
+  if(ex?.cat==='Calentamiento')
+    return {peso:'',series:'',reps:'',obs:'',realizado:warmupDone[id]!==false?'Sí':''};
   return {
-    peso:   document.getElementById('p-'+id)?.value || '',
-    series: document.getElementById('s-'+id)?.value || '',
-    reps:   document.getElementById('r-'+id)?.value || '',
-    obs:    document.getElementById('o-'+id)?.value || '',
-    realizado: ''
+    peso:   document.getElementById('p-'+id)?.value||'',
+    series: document.getElementById('s-'+id)?.value||'',
+    reps:   document.getElementById('r-'+id)?.value||'',
+    obs:    document.getElementById('o-'+id)?.value||'',
+    realizado:''
   };
 }
 
-// ── ENVÍO DE SESIÓN ───────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// ENVÍO DE SESIÓN
+// ─────────────────────────────────────────────────────────────
 function submitSession() {
-  const sel = EXERCISES.filter(e => selected.has(e.id));
-  const ejercicios = sel.map(ex => ({ ...ex, ...getData(ex.id) }));
-  const fecha = fechaAhora();
-
+  const sel = EXERCISES.filter(e=>selected.has(e.id));
   const session = {
     id:         genId(),
     cliente:    clientName,
-    fecha,
+    fecha:      fechaAhora(),
     tipo:       'Entrenamiento',
     obsGeneral: document.getElementById('obs-general').value.trim(),
-    ejercicios,
+    ejercicios: sel.map(ex=>({...ex,...getData(ex.id)})),
     createdAt:  Date.now()
   };
 
-  // 1. Guardar local siempre (instantáneo, no puede fallar la navegación)
-  guardarLocal(session);
-
-  // 2. Mostrar confirmación inmediatamente — no esperar a Sheets
+  // Mostrar confirmación inmediatamente
   mostrarConfirmacion(session);
 
-  // 3. Enviar a Sheets en segundo plano sin bloquear
-  if (SCRIPT_URL && SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
-    enviarASheets(session).catch(() => {});
-  }
+  // Invalidar caché del cliente para que el historial se recargue desde Sheets
+  cacheDel('hist_'+clientName);
+
+  // Enviar a Sheets en segundo plano
+  sheetsPost({ action:'guardar', data: toBase64(session) });
 }
 
-// ── LOCAL STORAGE ─────────────────────────────────────────────
-function guardarLocal(session) {
-  const key = 'pt_' + clientName;
-  const arr = JSON.parse(localStorage.getItem(key) || '[]');
-  arr.unshift(session);
-  try { localStorage.setItem(key, JSON.stringify(arr.slice(0,100))); } catch(e) {}
-}
-function getLocal() {
-  return JSON.parse(localStorage.getItem('pt_' + clientName) || '[]');
-}
-function deleteLocal(sessionId) {
-  const key = 'pt_' + clientName;
-  const arr = JSON.parse(localStorage.getItem(key) || '[]');
-  const filtered = arr.filter(s => s.id !== sessionId);
-  localStorage.setItem(key, JSON.stringify(filtered));
-}
-
-// ── CONFIRMACIÓN ──────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// CONFIRMACIÓN
+// ─────────────────────────────────────────────────────────────
 function mostrarConfirmacion(s) {
-  const filled = s.ejercicios.filter(e => e.peso||e.series||e.reps||e.obs||e.realizado);
-  document.getElementById('confirm-sub').textContent =
+  const filled=s.ejercicios.filter(e=>e.peso||e.series||e.reps||e.obs||e.realizado);
+  document.getElementById('confirm-sub').textContent=
     `${formatFecha(s.fecha)} · ${s.cliente} · ${filled.length} ejercicios`;
-  document.getElementById('confirm-header').innerHTML = `
+  document.getElementById('confirm-header').innerHTML=`
     <div class="avatar">${initials(s.cliente)}</div>
     <div><p style="font-weight:600;font-size:15px;">${s.cliente}</p>
          <p style="font-size:12px;color:var(--text2);">${formatFecha(s.fecha)}</p></div>`;
-  document.getElementById('summary-rows').innerHTML = filled.map(e => {
-    const parts=[];
-    if(e.peso)   parts.push(e.peso+' kg');
-    if(e.series) parts.push(e.series+' series');
-    if(e.reps)   parts.push(e.reps+' reps');
-    if(e.cat === 'Calentamiento' && e.realizado) parts.push('Realizado ✓');
+  document.getElementById('summary-rows').innerHTML=filled.map(e=>{
+    const p=[];
+    if(e.peso)   p.push(e.peso+' kg');
+    if(e.series) p.push(e.series+' series');
+    if(e.reps)   p.push(e.reps+' reps');
+    if(e.cat==='Calentamiento'&&e.realizado) p.push('Realizado ✓');
     return `<div class="summary-row">
       <span class="sum-name">${e.nombre}</span>
-      <span class="sum-vals">${parts.join(' · ')||'—'}</span></div>`;
+      <span class="sum-vals">${p.join(' · ')||'—'}</span></div>`;
   }).join('');
-  const obsEl = document.getElementById('confirm-obs');
-  if (s.obsGeneral) { obsEl.textContent = s.obsGeneral; obsEl.style.display='block'; }
+  const obsEl=document.getElementById('confirm-obs');
+  if(s.obsGeneral){obsEl.textContent=s.obsGeneral;obsEl.style.display='block';}
   else obsEl.style.display='none';
   goTo('s-confirm');
 }
 function nuevaSesion() {
-  selected.clear(); openEntry = null;
-  document.getElementById('obs-general').value = '';
-  document.getElementById('paso-2').style.display = 'none';
-  document.getElementById('paso-1').style.display = 'block';
+  selected.clear(); openEntry=null;
+  document.getElementById('obs-general').value='';
+  document.getElementById('paso-2').style.display='none';
+  document.getElementById('paso-1').style.display='block';
   renderChips(); showTab('nueva'); goTo('s-panel');
 }
-function verHistorial() { showTab('historial'); goTo('s-panel'); }
+function verHistorial(){ showTab('historial'); goTo('s-panel'); }
 
-// ── HISTORIAL ─────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// HISTORIAL — fuente: Google Sheets
+// ─────────────────────────────────────────────────────────────
 async function cargarHistorial() {
-  const cont = document.getElementById('historial-container');
-  banner('banner-historial','Cargando tu historial...','loading');
-  cont.innerHTML = '';
+  const cont=document.getElementById('historial-container');
+  // Mostrar caché mientras carga
+  const cached = cacheGet('hist_'+clientName);
+  if (cached) renderHistorial(cached);
+  else { banner('banner-historial','Cargando desde Google Sheets...','loading'); cont.innerHTML=''; }
 
-  // Intentar desde Sheets
-  if (SCRIPT_URL && SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
-    try {
-      const url = `${SCRIPT_URL}?action=historial&cliente=${encodeURIComponent(clientName)}`;
-      const resp = await fetch(url);
-      const data = await resp.json();
-      if (data.ok && data.sesiones.length) {
-        hideBanner('banner-historial');
-        renderHistorial(data.sesiones);
-        return;
-      }
-    } catch(e) { /* fallback a local */ }
+  try {
+    const data = await sheetsGet({action:'historial', cliente:clientName});
+    hideBanner('banner-historial');
+    if (data.ok) {
+      cacheSet('hist_'+clientName, data.sesiones);
+      renderHistorial(data.sesiones);
+    } else {
+      banner('banner-historial','Error cargando historial: '+data.error,'err');
+    }
+  } catch(e) {
+    hideBanner('banner-historial');
+    if (!cached) cont.innerHTML='<p style="font-size:13px;color:var(--text2);">Sin conexión. Comprueba tu red.</p>';
   }
-
-  // Fallback local
-  const local = getLocal();
-  hideBanner('banner-historial');
-  if (!local.length) {
-    cont.innerHTML = '<p style="font-size:13px;color:var(--text2);">Aún no tienes sesiones registradas.</p>';
-    return;
-  }
-  renderHistorial(local);
 }
 
 function renderHistorial(sesiones) {
-  const cont = document.getElementById('historial-container');
-  const totalEj = sesiones.reduce((acc,s) =>
-    acc + (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs||e.realizado).length, 0);
-
-  cont.innerHTML = `
+  const cont=document.getElementById('historial-container');
+  if (!sesiones||!sesiones.length) {
+    cont.innerHTML='<p style="font-size:13px;color:var(--text2);">Aún no tienes sesiones registradas.</p>';
+    return;
+  }
+  const totalEj=sesiones.reduce((a,s)=>a+(s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs||e.realizado).length,0);
+  cont.innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem;">
       <div class="stat-card"><div class="stat-label">Sesiones</div><div class="stat-val">${sesiones.length}</div></div>
       <div class="stat-card"><div class="stat-label">Ejercicios</div><div class="stat-val">${totalEj}</div></div>
       <div class="stat-card"><div class="stat-label">Última</div><div class="stat-val-sm">${formatFecha(sesiones[0]?.fecha)||'—'}</div></div>
     </div>
-    ${sesiones.map((s,i) => {
-      const filled = (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs||e.realizado);
-      return `
-      <div class="history-card" id="hcard-wrap-${s.id}">
+    ${sesiones.map((s,i)=>{
+      const filled=(s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs||e.realizado);
+      return `<div class="history-card" id="hcard-wrap-${s.id}">
         <div class="history-card-hdr" onclick="toggleHCard('hc-${i}')">
           <div class="history-card-hdr-left">
             <p style="font-weight:500;font-size:14px;">${formatFecha(s.fecha)}</p>
@@ -971,15 +941,15 @@ function renderHistorial(sesiones) {
           <span class="chevron" id="chev-hc-${i}">›</span>
         </div>
         <div class="history-card-body" id="hc-${i}">
-          ${filled.map(e => {
-            const parts=[];
-            if(e.peso)   parts.push(e.peso+' kg');
-            if(e.series) parts.push(e.series+' series');
-            if(e.reps)   parts.push(e.reps+' reps');
-            if(e.cat === 'Calentamiento' && e.realizado) parts.push('Realizado ✓');
+          ${filled.map(e=>{
+            const p=[];
+            if(e.peso)   p.push(e.peso+' kg');
+            if(e.series) p.push(e.series+' series');
+            if(e.reps)   p.push(e.reps+' reps');
+            if(e.cat==='Calentamiento'&&e.realizado) p.push('Realizado ✓');
             return `<div class="history-ex-row">
               <span style="font-weight:500;">${e.nombre}</span>
-              <span style="color:var(--text2);font-family:var(--mono);font-size:12px;">${parts.join(' · ')||'—'}</span>
+              <span style="color:var(--text2);font-family:var(--mono);font-size:12px;">${p.join(' · ')||'—'}</span>
             </div>`;
           }).join('')}
           ${s.obsGeneral?`<p style="font-size:12px;color:var(--text2);margin-top:8px;font-style:italic;">${s.obsGeneral}</p>`:''}
@@ -990,276 +960,209 @@ function renderHistorial(sesiones) {
       </div>`;
     }).join('')}`;
 }
-
 function toggleHCard(id) {
-  if (openHCard && openHCard !== id) {
+  if(openHCard&&openHCard!==id){
     document.getElementById(openHCard)?.classList.remove('open');
     document.getElementById('chev-'+openHCard)?.classList.remove('open');
   }
-  openHCard = id;
+  openHCard=id;
   document.getElementById(id)?.classList.toggle('open');
   document.getElementById('chev-'+id)?.classList.toggle('open');
 }
 
-// ── CSV EXPORT ────────────────────────────────────────────────
-const CSV_HEADERS = ['Fecha','Cliente','Ejercicio','Categoría','Peso (kg)','Series','Repeticiones','Observaciones','Obs. general'];
-
-function sesionesToRows(sesiones) {
-  const rows = [];
-  sesiones.forEach(s => {
-    (s.ejercicios||[]).forEach(e => {
-      if (!e.peso && !e.series && !e.reps && !e.obs && !e.realizado) return;
-      rows.push([s.fecha, s.cliente, e.nombre, e.cat,
-        e.peso||'', e.series||'', e.reps||'', e.obs||(e.realizado?'Realizado':''), s.obsGeneral||'']);
-    });
-  });
-  return rows;
-}
-
-function descargarCSV(rows, filename) {
-  if (!rows.length) return false;
-  const csv = [CSV_HEADERS, ...rows]
-    .map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(','))
-    .join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-  return true;
-}
-
-// Cliente exporta sus propias sesiones
-function exportarClientePropio() {
-  const sesiones = getLocal();
-  if (!sesiones.length) { alert('No tienes sesiones guardadas en este dispositivo.'); return; }
-  const rows = sesionesToRows(sesiones);
-  const fecha = new Date().toISOString().slice(0,10);
-  descargarCSV(rows, `entrenamiento_${clientName.replace(/\s+/g,'_')}_${fecha}.csv`);
-}
-
-// ── ENTRENADOR ────────────────────────────────────────────────
-// Cambia esta contraseña por la que quieras
-const TRAINER_PASSWORD = 'entrenador2026';
-
-function loginTrainer() {
-  const pass = document.getElementById('trainer-pass').value;
-  if (pass !== TRAINER_PASSWORD) {
-    banner('banner-trainer-login','Contraseña incorrecta','err');
-    return;
-  }
-  document.getElementById('trainer-pass').value = '';
-  cargarPanelEntrenador();
-  goTo('s-trainer');
-}
-document.getElementById('trainer-pass')?.addEventListener('keydown', e => {
-  if (e.key === 'Enter') loginTrainer();
-});
-
-function getAllClients() {
-  // Busca todas las claves pt_* en localStorage
-  const clients = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith('pt_')) {
-      const name = key.slice(3);
-      const sessions = JSON.parse(localStorage.getItem(key) || '[]');
-      if (sessions.length) clients.push({ name, sessions });
-    }
-  }
-  return clients.sort((a,b) => a.name.localeCompare(b.name));
-}
-
-let trainerOpenClient = null;
-
-function cargarPanelEntrenador() {
-  const clients = getAllClients();
-  const cont = document.getElementById('trainer-clients-list');
-  if (!clients.length) {
-    cont.innerHTML = '<p style="font-size:13px;color:var(--text2);">No hay clientes registrados en este dispositivo aún.</p>';
-    return;
-  }
-  cont.innerHTML = clients.map(c => `
-    <div class="history-card" id="tclient-wrap-${c.name.replace(/\s+/g,'_')}">
-      <div class="history-card-hdr" onclick="toggleTrainerClient('${c.name.replace(/\s+/g,'_')}')">
-        <div class="history-card-hdr-left">
-          <p style="font-size:14px;font-weight:500;">${c.name}</p>
-          <p style="font-size:12px;color:var(--text2);">${c.sessions.length} sesiones guardadas</p>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <button class="btn btn-sm" onclick="event.stopPropagation();exportarClienteDesdePanel('${c.name}')">⬇ CSV</button>
-          <span class="chevron" id="tchev-${c.name.replace(/\s+/g,'_')}">›</span>
-        </div>
-      </div>
-      <div class="history-card-body" id="tclient-${c.name.replace(/\s+/g,'_')}">
-        ${c.sessions.map(s => {
-          const filled = (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs||e.realizado);
-          const sid = s.id;
-          const cname = c.name;
-          return `
-          <div style="padding:8px 0;border-bottom:1px solid var(--border);" id="tsession-${sid}">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div>
-                <p style="font-size:13px;font-weight:500;">${formatFecha(s.fecha)}</p>
-                <p style="font-size:12px;color:var(--text2);">${filled.length} ejercicios</p>
-              </div>
-              <button class="delete-session-btn" onclick="trainerDeleteSession('${cname}','${sid}')">🗑 Borrar</button>
-            </div>
-            ${filled.length ? `<div style="margin-top:6px;">
-              ${filled.slice(0,3).map(e=>`<span style="font-size:11px;background:var(--bg2);border-radius:999px;padding:2px 8px;margin-right:4px;">${e.nombre}</span>`).join('')}
-              ${filled.length>3?`<span style="font-size:11px;color:var(--text2);">+${filled.length-3} más</span>`:''}
-            </div>`:''}
-          </div>`;
-        }).join('')}
-        <button class="btn btn-sm btn-red" style="margin-top:10px;width:100%;" onclick="trainerDeleteAllClient('${c.name}')">
-          🗑 Borrar todas las sesiones de ${c.name}
-        </button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function toggleTrainerClient(key) {
-  if (trainerOpenClient && trainerOpenClient !== key) {
-    document.getElementById('tclient-'+trainerOpenClient)?.classList.remove('open');
-    document.getElementById('tchev-'+trainerOpenClient)?.classList.remove('open');
-  }
-  trainerOpenClient = key;
-  document.getElementById('tclient-'+key)?.classList.toggle('open');
-  document.getElementById('tchev-'+key)?.classList.toggle('open');
-}
-
-// ── BORRAR SESIÓN ─────────────────────────────────────────────
-function trainerDeleteSession(clientName, sessionId) {
-  if (!confirm('¿Borrar esta sesión?')) return;
-  const key = 'pt_' + clientName;
-  const arr = JSON.parse(localStorage.getItem(key) || '[]');
-  const filtered = arr.filter(s => s.id !== sessionId);
-  localStorage.setItem(key, JSON.stringify(filtered));
-  const el = document.getElementById('tsession-' + sessionId);
-  if (el) {
-    el.style.transition = 'opacity 0.2s';
-    el.style.opacity = '0';
-    setTimeout(() => { el.remove(); cargarPanelEntrenador(); }, 220);
-  }
-}
-
-function trainerDeleteAllClient(nombre) {
-  if (!confirm(`¿Borrar TODAS las sesiones de ${nombre}? Esta acción no se puede deshacer.`)) return;
-  localStorage.removeItem('pt_' + nombre);
-  const wrap = document.getElementById('tclient-wrap-' + nombre.replace(/\s+/g,'_'));
-  if (wrap) {
-    wrap.style.transition = 'opacity 0.2s';
-    wrap.style.opacity = '0';
-    setTimeout(() => { wrap.remove(); cargarPanelEntrenador(); }, 220);
-  }
-}
-
-function exportarClienteDesdePanel(nombre) {
-  const key      = 'pt_' + nombre;
-  const sesiones = JSON.parse(localStorage.getItem(key) || '[]');
-  if (!sesiones.length) { alert(`No hay sesiones para ${nombre}`); return; }
-  const rows  = sesionesToRows(sesiones);
-  const fecha = new Date().toISOString().slice(0,10);
-  descargarCSV(rows, `${nombre.replace(/\s+/g,'_')}_${fecha}.csv`);
-}
-
-function exportarTodosCSV() {
-  const clients = getAllClients();
-  if (!clients.length) { alert('No hay datos guardados en este dispositivo.'); return; }
-  const todasSesiones = clients.flatMap(c => c.sessions);
-  todasSesiones.sort((a,b) => (a.cliente||'').localeCompare(b.cliente||'') || (b.createdAt||0) - (a.createdAt||0));
-  const rows  = sesionesToRows(todasSesiones);
-  const fecha = new Date().toISOString().slice(0,10);
-  const ok    = descargarCSV(rows, `todos_los_clientes_${fecha}.csv`);
-  if (!ok) alert('No hay registros de ejercicios para exportar.');
-}
-
-// ── BORRAR SESIÓN ─────────────────────────────────────────────
-function exportarClienteCSV() {
-  const nombre = document.getElementById('trainer-client-filter').value.trim();
-  if (!nombre) { banner('banner-trainer-export','Escribe el nombre del cliente','err'); return; }
-  const key      = 'pt_' + nombre;
-  const sesiones = JSON.parse(localStorage.getItem(key) || '[]');
-  if (!sesiones.length) { banner('banner-trainer-export',`No se encontraron sesiones para "${nombre}"`, 'err'); return; }
-  const rows  = sesionesToRows(sesiones);
-  const fecha = new Date().toISOString().slice(0,10);
-  descargarCSV(rows, `${nombre.replace(/\s+/g,'_')}_${fecha}.csv`);
-  banner('banner-trainer-export','CSV descargado correctamente','ok');
-}
-
+// ─────────────────────────────────────────────────────────────
+// BORRAR SESIÓN — llama a Sheets y actualiza UI
+// ─────────────────────────────────────────────────────────────
 function abrirDeleteOverlay(sessionId, fecha) {
-  pendingDeleteId = sessionId;
-  document.getElementById('delete-msg').textContent =
-    `¿Eliminar la sesión del ${formatFecha(fecha)}? Se borrará de este dispositivo.`;
+  pendingDeleteId=sessionId;
+  document.getElementById('delete-msg').textContent=
+    `¿Eliminar la sesión del ${formatFecha(fecha)}? Se borrará permanentemente de Google Sheets.`;
   document.getElementById('delete-overlay').classList.add('open');
 }
 function closeDeleteOverlay() {
-  pendingDeleteId = null;
+  pendingDeleteId=null;
   document.getElementById('delete-overlay').classList.remove('open');
 }
-function confirmDelete() {
+async function confirmDelete() {
   if (!pendingDeleteId) return;
-  deleteLocal(pendingDeleteId);
-  // Animación de salida
-  const card = document.getElementById('hcard-wrap-' + pendingDeleteId);
-  if (card) {
-    card.style.transition = 'opacity 0.25s, transform 0.25s';
-    card.style.opacity = '0';
-    card.style.transform = 'translateX(30px)';
-    setTimeout(() => card.remove(), 250);
-  }
+  const id=pendingDeleteId;
   closeDeleteOverlay();
-  // Recargar stats
-  setTimeout(() => cargarHistorial(), 300);
+
+  // Animación inmediata
+  const card=document.getElementById('hcard-wrap-'+id);
+  if(card){ card.style.transition='opacity 0.25s,transform 0.25s'; card.style.opacity='0'; card.style.transform='translateX(30px)'; setTimeout(()=>card.remove(),250); }
+
+  // Invalidar caché
+  cacheDel('hist_'+clientName);
+
+  // Borrar en Sheets vía fetch (necesitamos confirmación)
+  try {
+    const data = await sheetsGet({action:'borrar', id, cliente:clientName});
+    if (!data.ok) console.warn('Borrado en Sheets falló:', data.error);
+  } catch(e) { console.warn('Error borrando:', e); }
+
+  // Recargar historial desde Sheets
+  setTimeout(()=>cargarHistorial(), 400);
 }
 
-// ── COPIA DE SEGURIDAD ────────────────────────────────────────
-function exportarBackup() {
-  const backup = { version: 1, fecha: new Date().toISOString(), datos: {} };
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith('pt_')) {
-      backup.datos[key] = JSON.parse(localStorage.getItem(key) || '[]');
+// ─────────────────────────────────────────────────────────────
+// CSV EXPORT
+// ─────────────────────────────────────────────────────────────
+const CSV_HEADERS=['Fecha','Cliente','Ejercicio','Categoría','Peso (kg)','Series','Repeticiones','Observaciones','Obs. general'];
+function sesionesToRows(sesiones){
+  const rows=[];
+  sesiones.forEach(s=>(s.ejercicios||[]).forEach(e=>{
+    if(!e.peso&&!e.series&&!e.reps&&!e.obs&&!e.realizado) return;
+    rows.push([s.fecha,s.cliente,e.nombre,e.cat,e.peso||'',e.series||'',e.reps||'',e.obs||(e.realizado?'Realizado':''),s.obsGeneral||'']);
+  }));
+  return rows;
+}
+function descargarCSV(rows,filename){
+  if(!rows.length) return false;
+  const csv=[CSV_HEADERS,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);
+  return true;
+}
+async function exportarClientePropio(){
+  banner('banner-exportar','Cargando sesiones desde Sheets...','loading');
+  try {
+    const data=await sheetsGet({action:'historial',cliente:clientName});
+    hideBanner('banner-exportar');
+    if(!data.ok||!data.sesiones.length){ alert('No hay sesiones guardadas.'); return; }
+    descargarCSV(sesionesToRows(data.sesiones),`entrenamiento_${clientName.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`);
+  } catch(e){ hideBanner('banner-exportar'); alert('Error de conexión. Inténtalo de nuevo.'); }
+}
+
+// ─────────────────────────────────────────────────────────────
+// PANEL ENTRENADOR
+// ─────────────────────────────────────────────────────────────
+function loginTrainer() {
+  const pass=document.getElementById('trainer-pass').value;
+  if(pass!==TRAINER_PASSWORD){ banner('banner-trainer-login','Contraseña incorrecta','err'); return; }
+  document.getElementById('trainer-pass').value='';
+  cargarPanelEntrenador();
+  goTo('s-trainer');
+}
+document.getElementById('trainer-pass')?.addEventListener('keydown',e=>{
+  if(e.key==='Enter') loginTrainer();
+});
+
+async function cargarPanelEntrenador() {
+  const cont=document.getElementById('trainer-clients-list');
+  cont.innerHTML='<p style="font-size:13px;color:var(--text2);">Cargando desde Sheets...</p>';
+  try {
+    const data=await sheetsGet({action:'todos'});
+    if(!data.ok||!data.clientes.length){
+      cont.innerHTML='<p style="font-size:13px;color:var(--text2);">No hay clientes registrados aún.</p>'; return;
     }
+    cont.innerHTML=data.clientes.map(c=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div>
+          <p style="font-size:14px;font-weight:500;">${c.name}</p>
+          <p style="font-size:12px;color:var(--text2);">${c.count} sesiones</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" onclick="exportarClienteTrainer('${c.name}')">⬇ CSV</button>
+          <button class="btn btn-sm btn-red" onclick="borrarClienteTrainer('${c.name}')">🗑</button>
+        </div>
+      </div>`).join('');
+  } catch(e){
+    cont.innerHTML='<p style="font-size:13px;color:var(--red);">Error de conexión con Sheets.</p>';
   }
-  const total = Object.values(backup.datos).reduce((a,v)=>a+v.length,0);
-  if (!total) { banner('banner-backup','No hay datos para exportar','err'); return; }
-  const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `backup_entrenamiento_${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  banner('banner-backup', `Backup exportado: ${total} sesiones de ${Object.keys(backup.datos).length} clientes`, 'ok');
 }
 
-function importarBackup(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
+async function exportarClienteTrainer(nombre){
+  try {
+    const data=await sheetsGet({action:'historial',cliente:nombre});
+    if(!data.ok||!data.sesiones.length){ alert(`No hay sesiones para ${nombre}`); return; }
+    descargarCSV(sesionesToRows(data.sesiones),`${nombre.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`);
+  } catch(e){ alert('Error de conexión.'); }
+}
+
+async function exportarTodosCSV(){
+  banner('banner-trainer-export','Cargando desde Sheets...','loading');
+  try {
+    const clientsData=await sheetsGet({action:'todos'});
+    if(!clientsData.ok||!clientsData.clientes.length){ hideBanner('banner-trainer-export'); alert('No hay datos.'); return; }
+    const allRows=[];
+    for(const c of clientsData.clientes){
+      const d=await sheetsGet({action:'historial',cliente:c.name});
+      if(d.ok) allRows.push(...sesionesToRows(d.sesiones));
+    }
+    hideBanner('banner-trainer-export');
+    descargarCSV(allRows,`todos_clientes_${new Date().toISOString().slice(0,10)}.csv`);
+  } catch(e){ hideBanner('banner-trainer-export'); alert('Error de conexión.'); }
+}
+
+async function exportarClienteCSV(){
+  const nombre=document.getElementById('trainer-client-filter').value.trim();
+  if(!nombre){ banner('banner-trainer-export','Escribe el nombre del cliente','err'); return; }
+  await exportarClienteTrainer(nombre);
+}
+
+async function borrarClienteTrainer(nombre){
+  if(!confirm(`¿Borrar TODAS las sesiones de ${nombre} de Google Sheets? Esta acción no se puede deshacer.`)) return;
+  // Obtener sesiones y borrarlas una a una
+  try {
+    const data=await sheetsGet({action:'historial',cliente:nombre});
+    if(!data.ok){ alert('Error obteniendo sesiones.'); return; }
+    for(const s of data.sesiones){
+      await sheetsGet({action:'borrar',id:s.id,cliente:nombre});
+    }
+    cargarPanelEntrenador();
+  } catch(e){ alert('Error de conexión.'); }
+}
+
+// ─────────────────────────────────────────────────────────────
+// COPIA DE SEGURIDAD (JSON)
+// ─────────────────────────────────────────────────────────────
+async function exportarBackup(){
+  banner('banner-backup','Descargando datos de Sheets...','loading');
+  try {
+    const clientsData=await sheetsGet({action:'todos'});
+    if(!clientsData.ok||!clientsData.clientes.length){
+      hideBanner('banner-backup'); alert('No hay datos para exportar.'); return;
+    }
+    const backup={version:2, fecha:new Date().toISOString(), clientes:{}};
+    for(const c of clientsData.clientes){
+      const d=await sheetsGet({action:'historial',cliente:c.name});
+      if(d.ok) backup.clientes[c.name]=d.sesiones;
+    }
+    const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=`backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
+    URL.revokeObjectURL(url);
+    hideBanner('banner-backup');
+    banner('banner-backup','Backup exportado correctamente','ok');
+  } catch(e){ hideBanner('banner-backup'); banner('banner-backup','Error de conexión','err'); }
+}
+
+function importarBackup(event){
+  const file=event.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async function(e){
     try {
-      const backup = JSON.parse(e.target.result);
-      if (!backup.datos) throw new Error('Formato no válido');
-      let importados = 0, clientes = 0;
-      Object.entries(backup.datos).forEach(([key, sesiones]) => {
-        if (!key.startsWith('pt_') || !Array.isArray(sesiones)) return;
-        // Merge con datos existentes, evitar duplicados por id
-        const existing = JSON.parse(localStorage.getItem(key) || '[]');
-        const existingIds = new Set(existing.map(s => s.id));
-        const nuevas = sesiones.filter(s => !existingIds.has(s.id));
-        const merged = [...nuevas, ...existing].slice(0,100);
-        localStorage.setItem(key, JSON.stringify(merged));
-        importados += nuevas.length;
-        clientes++;
-      });
-      banner('banner-backup', `Backup importado: ${importados} sesiones nuevas de ${clientes} clientes`, 'ok');
-      event.target.value = '';
+      const backup=JSON.parse(e.target.result);
+      if(!backup.clientes) throw new Error('Formato no válido');
+      banner('banner-backup','Importando sesiones a Sheets...','loading');
+      let total=0;
+      for(const [nombre,sesiones] of Object.entries(backup.clientes)){
+        for(const s of sesiones){
+          await sheetsPost({action:'guardar',data:toBase64(s)});
+          total++;
+        }
+      }
+      hideBanner('banner-backup');
+      banner('banner-backup',`Importadas ${total} sesiones correctamente`,'ok');
+      event.target.value='';
       cargarPanelEntrenador();
-    } catch(err) {
-      banner('banner-backup', 'Error al importar: archivo no válido', 'err');
+    } catch(err){
+      hideBanner('banner-backup');
+      banner('banner-backup','Error al importar: '+err.message,'err');
     }
   };
   reader.readAsText(file);
