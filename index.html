@@ -652,7 +652,7 @@ function fechaAhora() {
 // ── ENVÍO A SHEETS con iframe oculto (sin restricciones CORS) ──
 function enviarASheets(session) {
   return new Promise((resolve) => {
-    if (!SCRIPT_URL || SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxOJrRURtrN9flPBRf7mIe2jSsZgxaUcf_DSQrmtjxAVkqS87df9mlNr7Fw_2sxmAdD3w/exec') {
+    if (!SCRIPT_URL || SCRIPT_URL === 'pega Aqui') {
       resolve({ ok: false, reason: 'no_url' });
       return;
     }
@@ -928,7 +928,7 @@ async function cargarHistorial() {
   cont.innerHTML = '';
 
   // Intentar desde Sheets
-  if (SCRIPT_URL && SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbxOJrRURtrN9flPBRf7mIe2jSsZgxaUcf_DSQrmtjxAVkqS87df9mlNr7Fw_2sxmAdD3w/exec') {
+  if (SCRIPT_URL && SCRIPT_URL !== 'PEGA AQUI') {
     try {
       const url = `${SCRIPT_URL}?action=historial&cliente=${encodeURIComponent(clientName)}`;
       const resp = await fetch(url);
