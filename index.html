@@ -586,11 +586,7 @@ const EXERCISES = [
   {id:'row',             nombre:'Remo',                         cat:'Cardio'},
   {id:'skierg',          nombre:'Ski',                          cat:'Cardio'},
   {id:'swim',            nombre:'Natación',                     cat:'Cardio'},
-  {id:'stretch-leg-ant', nombre:'Pierna anterior',              cat:'Estiramientos'},
-  {id:'stretch-leg-pos', nombre:'Pierna posterior',             cat:'Estiramientos'},
-  {id:'stretch-glut',    nombre:'Glúteos',                      cat:'Estiramientos'},
-  {id:'stretch-back',    nombre:'Espalda',                      cat:'Estiramientos'},
-  {id:'stretch-chest',   nombre:'Pecho',                        cat:'Estiramientos'},
+  {id:'stretching',      nombre:'Estiramientos',                cat:'Cardio'},
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -735,7 +731,7 @@ function toggleWarmup(id) {
   const btn=document.getElementById('wbtn-'+id);
   const dot=document.getElementById('dot-'+id);
   const done=warmupDone[id]!==false;
-  if(btn){ btn.classList.toggle('done',done); btn.textContent=done?'✓':''; }
+  if(btn){ btn.classList.toggle('done',done); btn.textContent='Hecho'; }
   if(dot) dot.className='status-dot'+(done?' ok':'');
 }
 
@@ -762,7 +758,7 @@ function renderEntries() {
   cats.forEach(cat => {
     html += `<div class="section-label">${cat}</div>`;
     sel.filter(e=>e.cat===cat).forEach(ex => {
-      if (cat==='Calentamiento') {
+      if (cat==='Calentamiento' || cat==='Estiramientos') {
         const isDone = warmupDone[ex.id]!==false;
         html += `<div class="ex-entry ex-warmup" id="entry-${ex.id}">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;">
@@ -771,8 +767,8 @@ function renderEntries() {
               <span class="ex-name">${ex.nombre}</span>
             </div>
             <button class="warmup-check-btn${isDone?' done':''}" id="wbtn-${ex.id}"
-              onclick="toggleWarmup('${ex.id}')" aria-label="Marcar realizado">
-              ${isDone?'✓':''}
+              onclick="toggleWarmup('${ex.id}')" aria-label="Marcar como hecho">
+              ${isDone?'Hecho':'Hecho'}
             </button>
           </div>
         </div>`;
@@ -817,7 +813,7 @@ function toggleEntry(id) {
 }
 function checkDot(id) {
   const ex=EXERCISES.find(e=>e.id===id);
-  const filled = ex?.cat==='Calentamiento'
+  const filled = (ex?.cat==='Calentamiento' || ex?.cat==='Estiramientos')
     ? warmupDone[id]!==false
     : ['p','s','r','o'].some(f=>document.getElementById(f+'-'+id)?.value?.trim());
   const dot=document.getElementById('dot-'+id);
@@ -825,7 +821,7 @@ function checkDot(id) {
 }
 function getData(id) {
   const ex=EXERCISES.find(e=>e.id===id);
-  if(ex?.cat==='Calentamiento')
+  if(ex?.cat==='Calentamiento' || ex?.cat==='Estiramientos')
     return {peso:'',series:'',reps:'',obs:'',realizado:warmupDone[id]!==false?'Sí':''};
   return {
     peso:   document.getElementById('p-'+id)?.value||'',
@@ -839,29 +835,16 @@ function getData(id) {
 // ─────────────────────────────────────────────────────────────
 // ENVÍO DE SESIÓN
 // ─────────────────────────────────────────────────────────────
-// Calcula el volumen total de una sesión (kg levantados)
-function calcularVolumen(ejercicios) {
-  return (ejercicios || []).reduce((total, ej) => {
-    const peso   = parseFloat(ej.peso)   || 0;
-    const series = parseInt(ej.series)   || 0;
-    const reps   = parseInt(ej.reps)     || 0;
-    return total + (peso * series * reps);
-  }, 0);
-}
-
 function submitSession() {
   const sel = EXERCISES.filter(e=>selected.has(e.id));
-  const ejercicios = sel.map(ex=>({...ex,...getData(ex.id)}));
-  const volumenTotal = calcularVolumen(ejercicios);
   const session = {
-    id:           genId(),
-    cliente:      clientName,
-    fecha:        fechaAhora(),
-    tipo:         'Entrenamiento',
-    obsGeneral:   document.getElementById('obs-general').value.trim(),
-    ejercicios:   ejercicios,
-    volumenTotal: volumenTotal,
-    createdAt:    Date.now()
+    id:         genId(),
+    cliente:    clientName,
+    fecha:      fechaAhora(),
+    tipo:       'Entrenamiento',
+    obsGeneral: document.getElementById('obs-general').value.trim(),
+    ejercicios: sel.map(ex=>({...ex,...getData(ex.id)})),
+    createdAt:  Date.now()
   };
 
   // Mostrar confirmación inmediatamente
@@ -885,15 +868,6 @@ function mostrarConfirmacion(s) {
     <div class="avatar">${initials(s.cliente)}</div>
     <div><p style="font-weight:600;font-size:15px;">${s.cliente}</p>
          <p style="font-size:12px;color:var(--text2);">${formatFecha(s.fecha)}</p></div>`;
-  const volumen = Number(s.volumenTotal || 0);
-  const volumenRow = volumen > 0
-    ? `<div class="summary-row">
-        <span class="sum-name">💪 Volumen total</span>
-        <span class="sum-vals" style="color:var(--yellow);font-weight:700;">
-          ${volumen.toLocaleString('es-ES')} kg
-        </span>
-       </div>`
-    : '';
   document.getElementById('summary-rows').innerHTML=filled.map(e=>{
     const p=[];
     if(e.peso)   p.push(e.peso+' kg');
@@ -903,7 +877,7 @@ function mostrarConfirmacion(s) {
     return `<div class="summary-row">
       <span class="sum-name">${e.nombre}</span>
       <span class="sum-vals">${p.join(' · ')||'—'}</span></div>`;
-  }).join('') + volumenRow;
+  }).join('');
   const obsEl=document.getElementById('confirm-obs');
   if(s.obsGeneral){obsEl.textContent=s.obsGeneral;obsEl.style.display='block';}
   else obsEl.style.display='none';
@@ -950,28 +924,23 @@ function renderHistorial(sesiones) {
     return;
   }
   const totalEj=sesiones.reduce((a,s)=>a+(s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs||e.realizado).length,0);
-  const volumenAcumulado=sesiones.reduce((a,s)=>a+(parseFloat(s.volumenTotal)||0),0);
-  const volumenMedio=sesiones.length?Math.round(volumenAcumulado/sesiones.length):0;
   cont.innerHTML=`
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1.25rem;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem;">
       <div class="stat-card"><div class="stat-label">Sesiones</div><div class="stat-val">${sesiones.length}</div></div>
       <div class="stat-card"><div class="stat-label">Ejercicios</div><div class="stat-val">${totalEj}</div></div>
-      <div class="stat-card"><div class="stat-label">Vol. medio</div><div class="stat-val-sm">${volumenMedio.toLocaleString('es-ES')} kg</div></div>
       <div class="stat-card"><div class="stat-label">Última</div><div class="stat-val-sm">${formatFecha(sesiones[0]?.fecha)||'—'}</div></div>
     </div>
     ${sesiones.map((s,i)=>{
       const filled=(s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs||e.realizado);
-      const volSesion=parseFloat(s.volumenTotal)||0;
       return `<div class="history-card" id="hcard-wrap-${s.id}">
         <div class="history-card-hdr" onclick="toggleHCard('hc-${i}')">
           <div class="history-card-hdr-left">
             <p style="font-weight:500;font-size:14px;">${formatFecha(s.fecha)}</p>
-            <p style="font-size:12px;color:var(--text2);">${filled.length} ejercicios${volSesion>0?' · <span style="color:var(--yellow);font-weight:600;">'+volSesion.toLocaleString('es-ES')+' kg</span>':''}</p>
+            <p style="font-size:12px;color:var(--text2);">${filled.length} ejercicios registrados</p>
           </div>
           <span class="chevron" id="chev-hc-${i}">›</span>
         </div>
         <div class="history-card-body" id="hc-${i}">
-          ${volSesion>0?`<div class="summary-row"><span class="sum-name">💪 Volumen total</span><span class="sum-vals" style="color:var(--yellow);font-weight:700;">${volSesion.toLocaleString('es-ES')} kg</span></div>`:''}
           ${filled.map(e=>{
             const p=[];
             if(e.peso)   p.push(e.peso+' kg');
@@ -1039,23 +1008,12 @@ async function confirmDelete() {
 // ─────────────────────────────────────────────────────────────
 // CSV EXPORT
 // ─────────────────────────────────────────────────────────────
-const CSV_HEADERS=['Fecha','Cliente','Ejercicio','Categoría','Peso (kg)','Series','Repeticiones','Volumen ejercicio (kg)','Volumen sesión (kg)','Observaciones','Obs. general'];
+const CSV_HEADERS=['Fecha','Cliente','Ejercicio','Categoría','Peso (kg)','Series','Repeticiones','Observaciones','Obs. general'];
 function sesionesToRows(sesiones){
   const rows=[];
   sesiones.forEach(s=>(s.ejercicios||[]).forEach(e=>{
     if(!e.peso&&!e.series&&!e.reps&&!e.obs&&!e.realizado) return;
-    const peso=parseFloat(e.peso)||0;
-    const series=parseInt(e.series)||0;
-    const reps=parseInt(e.reps)||0;
-    const volEj=peso*series*reps;
-    rows.push([
-      s.fecha, s.cliente, e.nombre, e.cat,
-      e.peso||'', e.series||'', e.reps||'',
-      volEj||'',
-      s.volumenTotal||'',
-      e.obs||(e.realizado?'Realizado':''),
-      s.obsGeneral||''
-    ]);
+    rows.push([s.fecha,s.cliente,e.nombre,e.cat,e.peso||'',e.series||'',e.reps||'',e.obs||(e.realizado?'Realizado':''),s.obsGeneral||'']);
   }));
   return rows;
 }
