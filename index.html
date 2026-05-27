@@ -586,11 +586,7 @@ const EXERCISES = [
   {id:'row',             nombre:'Remo',                         cat:'Cardio'},
   {id:'skierg',          nombre:'Ski',                          cat:'Cardio'},
   {id:'swim',            nombre:'Natación',                     cat:'Cardio'},
-  {id:'stretch-leg-ant', nombre:'Pierna anterior',              cat:'Estiramientos'},
-  {id:'stretch-leg-pos', nombre:'Pierna posterior',             cat:'Estiramientos'},
-  {id:'stretch-glut',    nombre:'Glúteos',                      cat:'Estiramientos'},
-  {id:'stretch-back',    nombre:'Espalda',                      cat:'Estiramientos'},
-  {id:'stretch-chest',   nombre:'Pecho',                        cat:'Estiramientos'},
+  {id:'stretching',      nombre:'Estiramientos',                cat:'Cardio'},
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -735,7 +731,7 @@ function toggleWarmup(id) {
   const btn=document.getElementById('wbtn-'+id);
   const dot=document.getElementById('dot-'+id);
   const done=warmupDone[id]!==false;
-  if(btn){ btn.classList.toggle('done',done); btn.textContent=done?'✓':''; }
+  if(btn){ btn.classList.toggle('done',done); btn.textContent='Hecho'; }
   if(dot) dot.className='status-dot'+(done?' ok':'');
 }
 
@@ -762,7 +758,7 @@ function renderEntries() {
   cats.forEach(cat => {
     html += `<div class="section-label">${cat}</div>`;
     sel.filter(e=>e.cat===cat).forEach(ex => {
-      if (cat==='Calentamiento') {
+      if (cat==='Calentamiento' || cat==='Estiramientos') {
         const isDone = warmupDone[ex.id]!==false;
         html += `<div class="ex-entry ex-warmup" id="entry-${ex.id}">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;">
@@ -771,8 +767,8 @@ function renderEntries() {
               <span class="ex-name">${ex.nombre}</span>
             </div>
             <button class="warmup-check-btn${isDone?' done':''}" id="wbtn-${ex.id}"
-              onclick="toggleWarmup('${ex.id}')" aria-label="Marcar realizado">
-              ${isDone?'✓':''}
+              onclick="toggleWarmup('${ex.id}')" aria-label="Marcar como hecho">
+              Hecho
             </button>
           </div>
         </div>`;
@@ -817,7 +813,7 @@ function toggleEntry(id) {
 }
 function checkDot(id) {
   const ex=EXERCISES.find(e=>e.id===id);
-  const filled = ex?.cat==='Calentamiento'
+  const filled = (ex?.cat==='Calentamiento' || ex?.cat==='Estiramientos')
     ? warmupDone[id]!==false
     : ['p','s','r','o'].some(f=>document.getElementById(f+'-'+id)?.value?.trim());
   const dot=document.getElementById('dot-'+id);
@@ -825,7 +821,7 @@ function checkDot(id) {
 }
 function getData(id) {
   const ex=EXERCISES.find(e=>e.id===id);
-  if(ex?.cat==='Calentamiento')
+  if(ex?.cat==='Calentamiento' || ex?.cat==='Estiramientos')
     return {peso:'',series:'',reps:'',obs:'',realizado:warmupDone[id]!==false?'Sí':''};
   return {
     peso:   document.getElementById('p-'+id)?.value||'',
@@ -839,12 +835,11 @@ function getData(id) {
 // ─────────────────────────────────────────────────────────────
 // ENVÍO DE SESIÓN
 // ─────────────────────────────────────────────────────────────
-// Calcula el volumen total de una sesión (kg levantados)
 function calcularVolumen(ejercicios) {
   return (ejercicios || []).reduce((total, ej) => {
-    const peso   = parseFloat(ej.peso)   || 0;
-    const series = parseInt(ej.series)   || 0;
-    const reps   = parseInt(ej.reps)     || 0;
+    const peso   = parseFloat(ej.peso) || 0;
+    const series = parseInt(ej.series) || 0;
+    const reps   = parseInt(ej.reps) || 0;
     return total + (peso * series * reps);
   }, 0);
 }
@@ -889,17 +884,15 @@ function mostrarConfirmacion(s) {
   const volumenRow = volumen > 0
     ? `<div class="summary-row">
         <span class="sum-name">💪 Volumen total</span>
-        <span class="sum-vals" style="color:var(--yellow);font-weight:700;">
-          ${volumen.toLocaleString('es-ES')} kg
-        </span>
-       </div>`
+        <span class="sum-vals" style="color:var(--yellow);font-weight:700;">${volumen.toLocaleString('es-ES')} kg</span>
+      </div>`
     : '';
   document.getElementById('summary-rows').innerHTML=filled.map(e=>{
     const p=[];
     if(e.peso)   p.push(e.peso+' kg');
     if(e.series) p.push(e.series+' series');
     if(e.reps)   p.push(e.reps+' reps');
-    if(e.cat==='Calentamiento'&&e.realizado) p.push('Realizado ✓');
+    if((e.cat==='Calentamiento' || e.cat==='Estiramientos')&&e.realizado) p.push('Hecho');
     return `<div class="summary-row">
       <span class="sum-name">${e.nombre}</span>
       <span class="sum-vals">${p.join(' · ')||'—'}</span></div>`;
@@ -977,7 +970,7 @@ function renderHistorial(sesiones) {
             if(e.peso)   p.push(e.peso+' kg');
             if(e.series) p.push(e.series+' series');
             if(e.reps)   p.push(e.reps+' reps');
-            if(e.cat==='Calentamiento'&&e.realizado) p.push('Realizado ✓');
+            if((e.cat==='Calentamiento' || e.cat==='Estiramientos')&&e.realizado) p.push('Hecho');
             return `<div class="history-ex-row">
               <span style="font-weight:500;">${e.nombre}</span>
               <span style="color:var(--text2);font-family:var(--mono);font-size:12px;">${p.join(' · ')||'—'}</span>
@@ -1053,7 +1046,7 @@ function sesionesToRows(sesiones){
       e.peso||'', e.series||'', e.reps||'',
       volEj||'',
       s.volumenTotal||'',
-      e.obs||(e.realizado?'Realizado':''),
+      e.obs||(e.realizado?'Hecho':''),
       s.obsGeneral||''
     ]);
   }));
