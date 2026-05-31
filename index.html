@@ -317,6 +317,15 @@
     .stat-card .stat-label { font-size:11px; color:var(--text2); text-transform:uppercase; letter-spacing:0.06em; }
     .stat-card .stat-val   { font-size:22px; font-weight:700; margin-top:2px; color:var(--yellow); }
     .stat-card .stat-val-sm{ font-size:13px; font-weight:600; margin-top:4px; color:var(--text); }
+
+    /* ── Multi-set rows ── */
+    .set-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) 28px; gap:6px; align-items:end; margin-bottom:6px; }
+    .set-row-num { font-size:11px; color:var(--text3); font-weight:600; text-align:center; padding-bottom:10px; font-family:var(--mono); }
+    .btn-del-set { width:28px; height:38px; flex-shrink:0; border:1.5px solid var(--border2); border-radius:var(--radius); background:transparent; color:var(--text3); font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; transition:all 0.15s; }
+    .btn-del-set:hover { border-color:var(--red); color:var(--red); background:var(--red-lt); }
+    .btn-add-set { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:8px; border:1.5px dashed var(--border2); border-radius:var(--radius); background:transparent; color:var(--text2); font-size:13px; font-weight:500; cursor:pointer; font-family:var(--font); margin-bottom:8px; transition:all 0.15s; -webkit-tap-highlight-color:transparent; }
+    .btn-add-set:hover { border-color:var(--yellow); color:var(--yellow); }
+    .sets-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:6px; display:block; }
   </style>
 </head>
 <body>
@@ -586,7 +595,7 @@ const EXERCISES = [
   {id:'row',             nombre:'Remo',                         cat:'Cardio'},
   {id:'skierg',          nombre:'Ski',                          cat:'Cardio'},
   {id:'swim',            nombre:'Natación',                     cat:'Cardio'},
-  {id:'stretching',      nombre:'Estiramientos',                cat:'Cardio'},
+  {id:'stretching',      nombre:'Estiramientos generales',                cat:'Estiramientos'},
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -599,6 +608,8 @@ let openHCard       = null;
 let pendingDeleteId = null;
 let warmupDone      = {};
 let trainerOpenClient = null;
+// Sets por ejercicio: { [exId]: [{peso,series,reps},...] }
+let exSets = {};
 // Caché en memoria (dura mientras la sesión de navegador esté abierta)
 const _cache = {};
 function cacheSet(k,v){ _cache[k] = {v, ts: Date.now()}; }
@@ -742,6 +753,7 @@ function goToRegister() {
   if (!selected.size){ banner('banner-chips','Selecciona al menos un ejercicio','err'); return; }
   hideBanner('banner-chips');
   warmupDone = {};
+  exSets = {};
   renderEntries();
   document.getElementById('paso-1').style.display='none';
   document.getElementById('paso-2').style.display='block';
@@ -751,6 +763,51 @@ function volverPaso1() {
   document.getElementById('paso-2').style.display='none';
   document.getElementById('paso-1').style.display='block';
 }
+
+// Renderiza las filas de sets adicionales de un ejercicio dentro del DOM ya existente
+function renderSetsDOM(id) {
+  const cont = document.getElementById('sets-cont-'+id);
+  if (!cont) return;
+  const sets = exSets[id] || [];
+  cont.innerHTML = sets.map((st, i) => `
+    <div class="set-row" id="set-row-${id}-${i}">
+      <div>
+        ${i===0?'<label class="field-label">Peso (kg)</label>':''}
+        <input type="number" value="${st.peso}" placeholder="0" min="0" step="0.5" inputmode="decimal"
+          oninput="updateSet('${id}',${i},'peso',this.value)" />
+      </div>
+      <div>
+        ${i===0?'<label class="field-label">Series</label>':''}
+        <input type="number" value="${st.series}" placeholder="0" min="0" inputmode="numeric"
+          oninput="updateSet('${id}',${i},'series',this.value)" />
+      </div>
+      <div>
+        ${i===0?'<label class="field-label">Reps</label>':''}
+        <input type="number" value="${st.reps}" placeholder="0" min="0" inputmode="numeric"
+          oninput="updateSet('${id}',${i},'reps',this.value)" />
+      </div>
+      <button class="btn-del-set" onclick="removeSet('${id}',${i})" title="Eliminar set" style="${i===0?'margin-top:22px':''}">×</button>
+    </div>`).join('');
+}
+function addSet(id) {
+  if (!exSets[id]) exSets[id] = [];
+  exSets[id].push({peso:'',series:'',reps:''});
+  renderSetsDOM(id);
+  checkDot(id);
+}
+function removeSet(id, idx) {
+  if (!exSets[id]) return;
+  exSets[id].splice(idx,1);
+  renderSetsDOM(id);
+  checkDot(id);
+}
+function updateSet(id, idx, field, val) {
+  if (exSets[id] && exSets[id][idx] !== undefined) {
+    exSets[id][idx][field] = val;
+  }
+  checkDot(id);
+}
+
 function renderEntries() {
   const sel  = EXERCISES.filter(e=>selected.has(e.id));
   const cats = [...new Set(sel.map(e=>e.cat))];
@@ -773,6 +830,8 @@ function renderEntries() {
           </div>
         </div>`;
       } else {
+        // Inicializar con un set vacío si no existe
+        if (!exSets[ex.id]) exSets[ex.id] = [{peso:'',series:'',reps:''}];
         html += `<div class="ex-entry">
           <div class="ex-entry-hdr" onclick="toggleEntry('${ex.id}')">
             <div class="ex-left">
@@ -782,14 +841,8 @@ function renderEntries() {
             <span class="chevron" id="chev-${ex.id}">›</span>
           </div>
           <div class="ex-body" id="body-${ex.id}">
-            <div class="fields-3">
-              <div><label class="field-label">Peso (kg)</label>
-                <input type="number" id="p-${ex.id}" placeholder="0" min="0" step="0.5" inputmode="decimal" oninput="checkDot('${ex.id}')"/></div>
-              <div><label class="field-label">Series</label>
-                <input type="number" id="s-${ex.id}" placeholder="0" min="0" inputmode="numeric" oninput="checkDot('${ex.id}')"/></div>
-              <div><label class="field-label">Reps</label>
-                <input type="number" id="r-${ex.id}" placeholder="0" min="0" inputmode="numeric" oninput="checkDot('${ex.id}')"/></div>
-            </div>
+            <div id="sets-cont-${ex.id}"></div>
+            <button class="btn-add-set" onclick="addSet('${ex.id}')">＋ Añadir set</button>
             <div><label class="field-label">Observaciones</label>
               <textarea id="o-${ex.id}" placeholder="Sensaciones, dificultad..." oninput="checkDot('${ex.id}')"></textarea></div>
           </div>
@@ -799,6 +852,8 @@ function renderEntries() {
   });
   document.getElementById('register-container').innerHTML = html;
   openEntry = null;
+  // Renderizar sets iniciales en el DOM
+  sel.filter(e=>e.cat!=='Calentamiento'&&e.cat!=='Estiramientos').forEach(ex => renderSetsDOM(ex.id));
   const first = EXERCISES.find(e=>selected.has(e.id));
   if(first) toggleEntry(first.id);
 }
@@ -813,23 +868,30 @@ function toggleEntry(id) {
 }
 function checkDot(id) {
   const ex=EXERCISES.find(e=>e.id===id);
-  const filled = (ex?.cat==='Calentamiento' || ex?.cat==='Estiramientos')
-    ? warmupDone[id]!==false
-    : ['p','s','r','o'].some(f=>document.getElementById(f+'-'+id)?.value?.trim());
+  let filled;
+  if (ex?.cat==='Calentamiento' || ex?.cat==='Estiramientos') {
+    filled = warmupDone[id]!==false;
+  } else {
+    const sets = exSets[id] || [];
+    filled = sets.some(st=>st.peso||st.series||st.reps) || !!document.getElementById('o-'+id)?.value?.trim();
+  }
   const dot=document.getElementById('dot-'+id);
   if(dot) dot.className='status-dot'+(filled?' ok':'');
 }
+// getData ahora devuelve ARRAY de objetos (uno por set) para ejercicios normales
 function getData(id) {
   const ex=EXERCISES.find(e=>e.id===id);
   if(ex?.cat==='Calentamiento' || ex?.cat==='Estiramientos')
-    return {peso:'',series:'',reps:'',obs:'',realizado:warmupDone[id]!==false?'Sí':''};
-  return {
-    peso:   document.getElementById('p-'+id)?.value||'',
-    series: document.getElementById('s-'+id)?.value||'',
-    reps:   document.getElementById('r-'+id)?.value||'',
-    obs:    document.getElementById('o-'+id)?.value||'',
-    realizado:''
-  };
+    return [{peso:'',series:'',reps:'',obs:'',realizado:warmupDone[id]!==false?'Sí':''}];
+  const obs = document.getElementById('o-'+id)?.value||'';
+  const sets = (exSets[id] || [{peso:'',series:'',reps:''}]);
+  return sets.map((st, i) => ({
+    peso:   st.peso   || '',
+    series: st.series || '',
+    reps:   st.reps   || '',
+    obs:    i===0 ? obs : '',   // obs solo en el primer set
+    realizado: ''
+  }));
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -846,8 +908,19 @@ function calcularVolumen(ejercicios) {
 
 function submitSession() {
   const sel = EXERCISES.filter(e=>selected.has(e.id));
-  const ejercicios = sel.map(ex=>({...ex,...getData(ex.id)}));
+  // getData devuelve array de sets; los expandimos en ejercicios individuales
+  const ejercicios = sel.flatMap(ex => {
+    const sets = getData(ex.id);
+    return sets.map(st => ({ ...ex, ...st }));
+  });
   const volumenTotal = calcularVolumen(ejercicios);
+  // Para la confirmación agrupamos por ejercicio
+  const ejerciciosAgrupados = sel.map(ex => {
+    const sets = getData(ex.id);
+    // Peso/series/reps del primer set para mostrar en resumen; obs del primero
+    const first = sets[0] || {};
+    return { ...ex, ...first, _sets: sets };
+  });
   const session = {
     id:           genId(),
     cliente:      clientName,
@@ -859,13 +932,13 @@ function submitSession() {
     createdAt:    Date.now()
   };
 
-  // Mostrar confirmación inmediatamente
-  mostrarConfirmacion(session);
+  // Mostrar confirmación inmediatamente (usamos agrupados para la vista)
+  mostrarConfirmacion({ ...session, ejercicios: ejerciciosAgrupados });
 
   // Invalidar caché del cliente para que el historial se recargue desde Sheets
   cacheDel('hist_'+clientName);
 
-  // Enviar a Sheets en segundo plano
+  // Enviar a Sheets con ejercicios expandidos (una fila por set)
   sheetsPost({ action:'guardar', data: toBase64(session) });
 }
 
@@ -888,6 +961,21 @@ function mostrarConfirmacion(s) {
       </div>`
     : '';
   document.getElementById('summary-rows').innerHTML=filled.map(e=>{
+    // Si tiene _sets (varios sets), mostramos cada uno
+    if (e._sets && e._sets.length > 1) {
+      const setsLine = e._sets
+        .filter(st=>st.peso||st.series||st.reps)
+        .map((st,i)=>{
+          const p=[];
+          if(st.peso)   p.push(st.peso+' kg');
+          if(st.series) p.push(st.series+' series');
+          if(st.reps)   p.push(st.reps+' reps');
+          return `<span style="font-size:11px;color:var(--text3);">S${i+1}</span> ${p.join('·')}`;
+        }).join('  ');
+      return `<div class="summary-row" style="flex-direction:column;align-items:flex-start;gap:2px;">
+        <span class="sum-name">${e.nombre}</span>
+        <span class="sum-vals" style="font-size:11px;">${setsLine||'—'}</span></div>`;
+    }
     const p=[];
     if(e.peso)   p.push(e.peso+' kg');
     if(e.series) p.push(e.series+' series');
@@ -903,7 +991,7 @@ function mostrarConfirmacion(s) {
   goTo('s-confirm');
 }
 function nuevaSesion() {
-  selected.clear(); openEntry=null;
+  selected.clear(); openEntry=null; exSets={};
   document.getElementById('obs-general').value='';
   document.getElementById('paso-2').style.display='none';
   document.getElementById('paso-1').style.display='block';
