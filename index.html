@@ -732,26 +732,29 @@ function renderChips() {
       const pool=EXERCISES.filter(e=>categories.includes(e.cat));
       if(pool.length<3) return {title:"Sin suficientes ejercicios",meta:"Selecciona más categorías",lines:["No hay suficientes ejercicios en las categorías elegidas."]};
       const shuffled=sampleShuffle(pool);
+      const pick = n => shuffled[n]?.nombre || shuffled[0]?.nombre;
       if(format==="amrap"){
         const mins=duration==="short"?10:duration==="long"?20:15;
-        return {title:`AMRAP ${mins}`,meta:`${mins} min · ${categories.join(" · ")}`,lines:[`12 ${shuffled[0]?.nombre}`,`10 ${shuffled[1]?.nombre}`,`8 ${shuffled[2]?.nombre}`]};
+        return {title:`AMRAP ${mins}`,meta:`${mins} min · ${categories.join(" · ")}`,lines:[`12 ${pick(0)}`,`10 ${pick(1)}`,`8 ${pick(2)}`],selectedIds:shuffled.slice(0,3).map(x=>x.id)};
       }
       if(format==="emom"){
         const mins=duration==="short"?12:duration==="long"?20:16;
-        return {title:`EMOM ${mins}`,meta:`${mins} min · ${categories.join(" · ")}`,lines:[`Min 1: 12 ${shuffled[0]?.nombre}`,`Min 2: 10 ${shuffled[1]?.nombre}`,`Min 3: 14 ${shuffled[2]?.nombre}`,`Min 4: descanso o core`]};
+        return {title:`EMOM ${mins}`,meta:`${mins} min · ${categories.join(" · ")}`,lines:[`Min 1: 12 ${pick(0)}`,`Min 2: 10 ${pick(1)}`,`Min 3: 14 ${pick(2)}`,`Min 4: descanso o core`],selectedIds:shuffled.slice(0,3).map(x=>x.id)};
       }
       if(format==="fortime"){
         const rounds=duration==="short"?3:duration==="long"?5:4;
-        return {title:`For Time · ${rounds} rondas`,meta:`${rounds} rondas · ${categories.join(" · ")}`,lines:[`15 ${shuffled[0]?.nombre}`,`12 ${shuffled[1]?.nombre}`,`10 ${shuffled[2]?.nombre}`,`200 m / cal ${shuffled[3]?.nombre || shuffled[0]?.nombre}`]};
+        return {title:`For Time · ${rounds} rondas`,meta:`${rounds} rondas · ${categories.join(" · ")}`,lines:[`15 ${pick(0)}`,`12 ${pick(1)}`,`10 ${pick(2)}`,`200 m / cal ${pick(3)}`],selectedIds:shuffled.slice(0,4).map(x=>x.id)};
       }
-      return {title:"Chipper",meta:`${duration} · ${categories.join(" · ")}`,lines:[`50 ${shuffled[0]?.nombre}`,`40 ${shuffled[1]?.nombre}`,`30 ${shuffled[2]?.nombre}`,`20 ${shuffled[3]?.nombre || shuffled[0]?.nombre}`,`15 ${shuffled[4]?.nombre || shuffled[1]?.nombre}`]};
+      return {title:"Chipper",meta:`${duration} · ${categories.join(" · ")}`,lines:[`50 ${pick(0)}`,`40 ${pick(1)}`,`30 ${pick(2)}`,`20 ${pick(3)}`,`15 ${pick(4)}`],selectedIds:shuffled.slice(0,5).map(x=>x.id)};
     }
+
     function renderWodPreview(wod){
       const slot=document.getElementById("wod-preview-slot");
       if(!slot) return;
       slot.innerHTML=`<div class="wod-preview-box"><div class="wod-preview-title">${wod.title}</div><div class="wod-preview-meta">${wod.meta}</div>${wod.lines.map(line=>`<div class="wod-preview-line">${line}</div>`).join("")}<div class="btn-row" style="margin-top:10px;"><button class="btn btn-sm btn-ghost" onclick="selectGeneratedWod()">Seleccionar ejercicios</button></div></div>`;
       window.__lastGeneratedWod=wod;
     }
+
     function generateWodFromModal(){
       const format=document.getElementById("wod-format").value;
       const duration=document.getElementById("wod-duration").value;
@@ -762,15 +765,23 @@ function renderChips() {
       renderWodPreview(wod);
       closeWodOverlay();
     }
+
     function selectGeneratedWod(){
       const wod=window.__lastGeneratedWod;
-      if(!wod || !wod.lines) return;
+      if(!wod || !Array.isArray(wod.selectedIds)) return;
       selected.clear();
-      wod.lines.forEach(line=>{
-        const lower=line.toLowerCase();
-        EXERCISES.forEach(ex=>{ if(lower.includes(ex.nombre.toLowerCase())) selected.add(ex.id); });
-      });
+      wod.selectedIds.forEach(id=>selected.add(id));
+      if(!Array.isArray(wodGenerated)) wodGenerated = [];
+      wodGenerated = [{ title: wod.title, meta: wod.meta, lines: wod.lines, selectedIds: wod.selectedIds, format: wod.format, duration: wod.duration || null }];
       renderChips();
+    }
+
+    function wodVolumeApprox(wod){
+      if(!wod || !Array.isArray(wod.lines)) return 0;
+      return wod.lines.reduce((sum, line)=>{
+        const m = String(line).match(/(\d+)/);
+        return sum + (m ? parseInt(m[1],10) : 0);
+      },0);
     }
 
     function toggleChip(id) {
@@ -967,6 +978,7 @@ function submitSession() {
     return sets.map(st => ({ ...ex, ...st }));
   });
   const volumenTotal = calcularVolumen(ejercicios);
+      const wodResumen = Array.isArray(wodGenerated) ? wodGenerated.map(w => ({ title: w.title, meta: w.meta, lines: w.lines, volumen: wodVolumeApprox(w) })) : [];
   const ejerciciosAgrupados = sel.map(ex => {
     const sets = getData(ex.id);
     const first = sets[0] || {};
