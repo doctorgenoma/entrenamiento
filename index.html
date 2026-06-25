@@ -223,6 +223,7 @@
     .chart-bar.active { background:var(--yellow); }
     .chart-bar-lbl { font-size:9px; color:var(--text3); font-family:var(--mono); white-space:nowrap; }
     .chart-bar-val { font-size:9px; color:var(--text2); font-family:var(--mono); }
+    .wod-generator-card{background:linear-gradient(135deg,rgba(245,197,24,0.14),rgba(245,197,24,0.06));border:1.5px solid rgba(245,197,24,0.28);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px}.wod-generator-card h3{font-size:15px;margin-bottom:4px;color:var(--yellow)}.wod-generator-card p{font-size:13px;color:var(--text2);line-height:1.45;margin-bottom:12px}.wod-preview-box{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;margin-top:12px}.wod-preview-title{font-size:14px;font-weight:700;color:var(--yellow);margin-bottom:6px}.wod-preview-line{font-size:13px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--border)}.wod-preview-line:last-child{border-bottom:none}.wod-preview-meta{font-size:11px;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}.wod-picker-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:220px;overflow:auto;padding:10px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--bg2)}.wod-picker-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)}.wod-mini-note{font-size:11px;color:var(--text2);margin-top:6px}.wod-volume-row{display:grid;grid-template-columns:1.4fr .7fr .7fr;gap:8px;align-items:end;margin-top:8px}.wod-volume-row input{min-width:0}
   </style>
 </head>
 <body>
@@ -402,6 +403,19 @@
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:1rem;">
       <button class="btn btn-primary" onclick="nuevaSesion()">Nueva sesión</button>
       <button class="btn"             onclick="verHistorial()">Ver mi historial</button>
+    </div>
+  </div>
+
+  <!-- MODAL GENERADOR WOD -->
+  <div class="confirm-overlay" id="wod-overlay">
+    <div class="confirm-sheet" style="max-width:560px;">
+      <h3>Generar WOD</h3>
+      <p>Elige formato, duración y los ejercicios que quieres incluir.</p>
+      <div style="margin-bottom:12px;"><label class="field-label" for="wod-format">Formato</label><select id="wod-format"><option value="amrap">AMRAP</option><option value="emom">EMOM</option><option value="fortime">For Time</option><option value="chipper">Chipper</option></select></div>
+      <div style="margin-bottom:12px;"><label class="field-label" for="wod-duration">Duración</label><select id="wod-duration"><option value="short">Corta (8-12 min)</option><option value="medium" selected>Media (12-20 min)</option><option value="long">Larga (20-30 min)</option></select></div>
+      <div style="margin-bottom:12px;"><div class="field-label">Tipos de ejercicios</div><div style="display:grid; gap:8px; margin-top:6px;"><label><input type="checkbox" class="wod-cat" value="Multiarticular" checked onchange="renderWodExercisePicker()"> Multiarticular</label><label><input type="checkbox" class="wod-cat" value="Otros-básicos" checked onchange="renderWodExercisePicker()"> Otros-básicos</label><label><input type="checkbox" class="wod-cat" value="Gimnásticos" checked onchange="renderWodExercisePicker()"> Gimnásticos</label><label><input type="checkbox" class="wod-cat" value="Cardio" checked onchange="renderWodExercisePicker()"> Cardio</label></div></div>
+      <div style="margin-bottom:12px;"><div class="field-label">Ejercicios para el WOD</div><div id="wod-picker" class="wod-picker-grid"></div><div class="wod-mini-note">Selecciona manualmente los ejercicios que quieres incluir.</div></div>
+      <div class="btn-row" style="margin-top:12px;"><button class="btn btn-ghost btn-sm" onclick="closeWodOverlay()">Cancelar</button><button class="btn btn-primary btn-sm" onclick="generateWodFromModal()">Generar</button></div>
     </div>
   </div>
 
@@ -661,26 +675,38 @@ document.getElementById('client-name').addEventListener('keydown', e => {
 // CHIPS (Paso 1)
 // ═══════════════════════════════════════════════════════════════
 function renderChips() {
-  const cats = [...new Set(EXERCISES.map(e=>e.cat))];
-  let html = '';
-  cats.forEach(cat => {
-    const exs = EXERCISES.filter(e=>e.cat===cat);
-    const n   = exs.filter(e=>selected.has(e.id)).length;
-    html += `<div class="cat-block">
-      <div class="cat-header">
-        <span class="cat-header-title">${cat}</span>
-        ${n>0?`<span class="cat-header-count">${n} seleccionado${n>1?'s':''}</span>`:''}
-      </div>
-      <div class="chips-wrap">`;
-    exs.forEach(ex => {
-      const sel = selected.has(ex.id);
-      html += `<div class="ex-chip${sel?' selected':''}" id="chip-${ex.id}" onclick="toggleChip('${ex.id}')">
-        <span class="chip-check"></span><span>${ex.nombre}</span></div>`;
-    });
-    html += `</div></div>`;
-  });
-  document.getElementById('chips-container').innerHTML = html;
-}
+      const cats=[...new Set(EXERCISES.map(e=>e.cat))];
+      let html="";
+      cats.forEach(cat=>{
+        if(cat==="Estiramientos"){
+          html+=`<div class="wod-generator-card"><h3>Hacer un WOD</h3><p>Selecciona ejercicios manualmente, genera el WOD y regístralo aparte del volumen principal.</p><button class="btn btn-primary btn-sm" onclick="openWodOverlay()">Generar WOD</button><div id="wod-preview-slot"></div></div>`;
+        }
+        const exs=EXERCISES.filter(e=>e.cat===cat);
+        const n=exs.filter(e=>selected.has(e.id)).length;
+        html+=`<div class="cat-block"><div class="cat-header"><span class="cat-header-title">${cat}</span>${n>0?`<span class="cat-header-count">${n} seleccionado${n>1?"s":""}</span>`:""}</div><div class="chips-wrap">`;
+        exs.forEach(ex=>{
+          const sel=selected.has(ex.id);
+          html+=`<div class="ex-chip ${sel?"selected":""}" id="chip-${ex.id}" onclick="toggleChip('${ex.id}')"><span class="chip-check"></span><span>${ex.nombre}</span></div>`;
+        });
+        html+="</div></div>";
+      });
+      document.getElementById("chips-container").innerHTML=html;
+      if(window.__lastGeneratedWod){ renderWodPreview(window.__lastGeneratedWod); if(Array.isArray(wodGenerated) && wodGenerated[0]) renderWodDataInputs(); }
+    }
+
+    function openWodOverlay(){ document.getElementById("wod-overlay").classList.add("open"); renderWodExercisePicker(); }
+    function closeWodOverlay(){ document.getElementById("wod-overlay").classList.remove("open"); }
+    function getCheckedWodCats(){ return [...document.querySelectorAll(".wod-cat:checked")].map(i=>i.value); }
+    function getAvailableWodExercises(){ const cats=getCheckedWodCats(); return EXERCISES.filter(e=>cats.includes(e.cat)); }
+    function renderWodExercisePicker(){ const box=document.getElementById('wod-picker'); if(!box) return; const exs=getAvailableWodExercises(); box.innerHTML=exs.map(ex=>`<label class="wod-picker-item"><input type="checkbox" class="wod-ex-item" value="${ex.id}" checked> <span>${ex.nombre}</span></label>`).join(''); }
+    function getCheckedWodExerciseIds(){ return [...document.querySelectorAll('.wod-ex-item:checked')].map(i=>i.value); }
+    function buildWod(format,duration,exerciseIds){ const chosen=EXERCISES.filter(e=>exerciseIds.includes(e.id)); if(chosen.length<2) return {title:"Selecciona más ejercicios",meta:"Mínimo 2 ejercicios",lines:["Debes elegir al menos 2 ejercicios para crear el WOD."],selectedIds:[]}; const titleBase = format==='amrap' ? `AMRAP ${duration==='short'?10:duration==='long'?20:15}` : format==='emom' ? `EMOM ${duration==='short'?12:duration==='long'?20:16}` : format==='fortime' ? `For Time · ${duration==='short'?3:duration==='long'?5:4} rondas` : 'Chipper'; let lines=[]; if(format==='amrap') lines=chosen.slice(0,3).map((e,i)=>`${[12,10,8][i]||8} ${e.nombre}`); else if(format==='emom') lines=chosen.slice(0,4).map((e,i)=>`Min ${i+1}: ${[12,10,14,16][i]||10} ${e.nombre}`); else if(format==='fortime') lines=chosen.slice(0,4).map((e,i)=>`${[15,12,10,200][i]||10} ${e.nombre}`); else lines=chosen.slice(0,5).map((e,i)=>`${[50,40,30,20,15][i]||15} ${e.nombre}`); return { title:titleBase, meta:`${chosen.length} ejercicios elegidos`, lines, selectedIds:chosen.map(e=>e.id) }; }
+    function renderWodPreview(wod){ const slot=document.getElementById("wod-preview-slot"); if(!slot) return; slot.innerHTML=`<div class="wod-preview-box"><div class="wod-preview-title">${wod.title}</div><div class="wod-preview-meta">${wod.meta}</div>${wod.lines.map(line=>`<div class="wod-preview-line">${line}</div>`).join("")}<div class="btn-row" style="margin-top:10px;"><button class="btn btn-sm btn-ghost" onclick="selectGeneratedWod()">Seleccionar ejercicios</button></div></div>`; window.__lastGeneratedWod=wod; }
+    function selectGeneratedWod(){ const wod=window.__lastGeneratedWod; if(!wod || !Array.isArray(wod.selectedIds) || !wod.selectedIds.length) return; if(!Array.isArray(wodGenerated)) wodGenerated=[]; selected.clear(); wod.selectedIds.forEach(id=>selected.add(id)); wodGenerated=[{ title:wod.title, meta:wod.meta, lines:wod.lines, selectedIds:wod.selectedIds, entries:wod.selectedIds.map(id=>{ const ex=EXERCISES.find(e=>e.id===id); const mode=ex?.modoVolumen || 'kg'; return { id, nombre: ex ? ex.nombre : id, modoVolumen: mode, peso:'', reps:'' }; }) }]; renderChips(); renderWodDataInputs(); }
+    function buildWodEntriesVolume(wod){ return wod.entries.reduce((acc,item)=>{ const reps=parseFloat(item.reps||0)||0; const peso=parseFloat(item.peso||0)||0; if(item.modoVolumen==='kg') acc.kg += reps*peso; else if(item.modoVolumen==='reps') acc.reps += reps; return acc; }, {kg:0,reps:0}); }
+    function renderWodDataInputs(){ const slot=document.getElementById('wod-preview-slot'); if(!slot || !Array.isArray(wodGenerated) || !wodGenerated[0]) return; const wod=wodGenerated[0]; const rows=wod.entries.map((item,idx)=>`<div class="wod-volume-row"><div><div class="field-label" style="margin-bottom:4px;">${item.nombre}</div><div style="font-size:11px;color:var(--text2);">${item.modoVolumen==='kg'?'Carga + reps':'Solo reps'}</div></div>${item.modoVolumen==='kg' ? `<input type="number" placeholder="kg" min="0" step="0.5" value="${item.peso}" oninput="updateWodEntry(${idx},'peso',this.value)">` : `<input type="text" disabled placeholder="sin kg">`}<input type="number" placeholder="reps" min="0" step="1" value="${item.reps}" oninput="updateWodEntry(${idx},'reps',this.value)"></div>`).join(''); const totals=buildWodEntriesVolume(wod); slot.innerHTML += `<div class="wod-preview-box"><div class="wod-preview-title">Datos del WOD</div>${rows}<div class="wod-mini-note">Carga WOD: <strong>${totals.kg.toLocaleString('es-ES')} kg</strong> · Reps WOD: <strong>${totals.reps.toLocaleString('es-ES')}</strong></div></div>`; }
+    function updateWodEntry(idx,field,value){ if(!Array.isArray(wodGenerated) || !wodGenerated[0] || !wodGenerated[0].entries[idx]) return; wodGenerated[0].entries[idx][field]=value; renderWodDataInputs(); }
+    function generateWodFromModal(){ const format=document.getElementById('wod-format').value; const duration=document.getElementById('wod-duration').value; const ids=getCheckedWodExerciseIds(); const wod=buildWod(format,duration,ids); renderChips(); renderWodPreview(wod); closeWodOverlay(); }
 function toggleChip(id) {
   selected.has(id)?selected.delete(id):selected.add(id);
   renderChips();
