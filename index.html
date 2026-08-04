@@ -514,9 +514,43 @@ const EXERCISES = [
   {id:'row',             nombre:'Remo',                          cat:'Cardio'},
   {id:'skierg',          nombre:'Ski',                           cat:'Cardio'},
   {id:'swim',            nombre:'Natación',                      cat:'Cardio'},
+  {id:'running',         nombre:'Running',                       cat:'Cardio'},
   {id:'stretching',      nombre:'Estiramientos generales',       cat:'Estiramientos'},
 ];
+const CARDIO_FIELDS = {
+  running: [
+    {key:'tiempo', label:'Tiempo (min)'},
+    {key:'distancia', label:'Distancia (km)'}
+  ],
+  swim: [
+    {key:'tiempo', label:'Tiempo (min)'},
+    {key:'distancia', label:'Distancia (m)'}
+  ],
+  bike: [
+    {key:'calorias', label:'Calorías'},
+    {key:'distancia', label:'Distancia (km)'},
+    {key:'tiempo', label:'Tiempo (min)'}
+  ],
+  row: [
+    {key:'calorias', label:'Calorías'},
+    {key:'distancia', label:'Distancia (m)'},
+    {key:'tiempo', label:'Tiempo (min)'}
+  ],
+  skierg: [
+    {key:'calorias', label:'Calorías'},
+    {key:'distancia', label:'Distancia (m)'},
+    {key:'tiempo', label:'Tiempo (min)'}
+  ]
+};
 
+function cardioRitmo(id, vals){
+  const t = parseFloat(vals.tiempo) || 0;
+  const d = parseFloat(vals.distancia) || 0;
+  if (!t || !d) return null;
+  if (id === 'running') return (t/d).toFixed(2) + ' min/km';
+  if (id === 'swim') return (t/d).toFixed(3) + ' min/m';
+  return null;
+}
 // ═══════════════════════════════════════════════════════════════
 // ESTADO
 // ═══════════════════════════════════════════════════════════════
@@ -741,33 +775,45 @@ function volverPaso1() {
   document.getElementById('paso-1').style.display='block';
 }
 
-function renderSetsDOM(id) {
+function renderSetsDOM(id){
   const cont = document.getElementById('sets-cont-'+id);
   if (!cont) return;
-  const sets = exSets[id] || [];
-  cont.innerHTML = sets.map((st, i) => `
-    <div class="set-row" id="set-row-${id}-${i}">
-      <div>
-        ${i===0?'<label class="field-label">Peso (kg)</label>':''}
-        <input type="number" value="${st.peso}" placeholder="0" min="0" step="0.5" inputmode="decimal"
-          oninput="updateSet('${id}',${i},'peso',this.value)" />
-      </div>
-      <div>
-        ${i===0?'<label class="field-label">Series</label>':''}
-        <input type="number" value="${st.series}" placeholder="0" min="0" inputmode="numeric"
-          oninput="updateSet('${id}',${i},'series',this.value)" />
-      </div>
-      <div>
-        ${i===0?'<label class="field-label">Reps</label>':''}
-        <input type="number" value="${st.reps}" placeholder="0" min="0" inputmode="numeric"
-          oninput="updateSet('${id}',${i},'reps',this.value)" />
-      </div>
-      <button class="btn-del-set" onclick="removeSet('${id}',${i})" title="Eliminar set" style="${i===0?'margin-top:22px':''}">×</button>
-    </div>`).join('');
+  const sets = exSets[id];
+  const cardioCfg = CARDIO_FIELDS[id];
+
+  if (cardioCfg) {
+    cont.innerHTML = sets.map((st,i)=>{
+      const inputs = cardioCfg.map(f=>`
+        <div>
+          <label class="field-label">${f.label}</label>
+          <input type="number" value="${st[f.key]||''}" placeholder="0" min="0" step="0.1" inputmode="decimal"
+            oninput="updateSet('${id}',${i},'${f.key}',this.value)">
+        </div>`).join('');
+      const ritmo = cardioRitmo(id, st);
+      const ritmoHtml = ritmo ? `<div style="font-size:11px;color:var(--text2);margin-top:4px">Ritmo: ${ritmo}</div>` : '';
+      return `<div class="set-row" style="grid-template-columns:repeat(${cardioCfg.length},minmax(0,1fr)) 28px" id="set-row-${id}-${i}">
+        ${inputs}
+        <button class="btn-del-set" onclick="removeSet('${id}',${i})" title="Eliminar registro">×</button>
+        ${ritmoHtml}
+      </div>`;
+    }).join('');
+    return;
+  }
+
+  cont.innerHTML = sets.map((st,i)=>`<div class="set-row" id="set-row-${id}-${i}">
+    <div>${i===0?'<label class="field-label">Peso (kg)</label>':''}<input type="number" value="${st.peso}" placeholder="0" min="0" step="0.5" inputmode="decimal" oninput="updateSet('${id}',${i},'peso',this.value)"></div>
+    <div>${i===0?'<label class="field-label">Series</label>':''}<input type="number" value="${st.series}" placeholder="0" min="0" inputmode="numeric" oninput="updateSet('${id}',${i},'series',this.value)"></div>
+    <div>${i===0?'<label class="field-label">Reps</label>':''}<input type="number" value="${st.reps}" placeholder="0" min="0" inputmode="numeric" oninput="updateSet('${id}',${i},'reps',this.value)"></div>
+    <button class="btn-del-set" onclick="removeSet('${id}',${i})" title="Eliminar set" style="${i===0?'margin-top:22px':''}">×</button>
+  </div>`).join('');
 }
-function addSet(id) {
+function addSet(id){
   if (!exSets[id]) exSets[id] = [];
-  exSets[id].push({peso:'',series:'',reps:''});
+  const cardioCfg = CARDIO_FIELDS[id];
+  const empty = cardioCfg
+    ? cardioCfg.reduce((o,f)=>({...o,[f.key]:''}), {})
+    : {peso:'', series:'', reps:''};
+  exSets[id].push(empty);
   renderSetsDOM(id);
   checkDot(id);
 }
@@ -868,7 +914,7 @@ function checkDot(id) {
     filled = warmupDone[id]!==false;
   } else {
     const sets = exSets[id] || [];
-    filled = sets.some(st=>st.peso||st.series||st.reps) || !!document.getElementById('o-'+id)?.value?.trim();
+    filled = sets.some(st => Object.values(st).some(v => v !== '' && v !== undefined)) || !!document.getElementById('o-'+id)?.value?.trim();
   }
   const dot=document.getElementById('dot-'+id);
   if(dot) dot.className='status-dot'+(filled?' ok':'');
@@ -876,7 +922,14 @@ function checkDot(id) {
 function getData(id) {
   const ex=EXERCISES.find(e=>e.id===id);
   if(ex?.cat==='Calentamiento' || ex?.cat==='Estiramientos')
-    return [{peso:'',series:'',reps:'',obs:'',realizado:warmupDone[id]!==false?'Sí':''}];
+    const cardioCfg = CARDIO_FIELDS[id];
+return sets.map((st,i) => {
+  if (cardioCfg) {
+    const vals = cardioCfg.map(f => st[f.key] ?? '');
+    return {peso: vals[0]||'', series: vals[1]||'', reps: vals[2]||'', obs: i===0 ? obs : '', realizado: 'Sí'};
+  }
+  return {peso: st.peso, series: st.series, reps: st.reps, obs: i===0 ? obs : '', realizado: 'Sí'};
+});
   const obs = document.getElementById('o-'+id)?.value||'';
   const sets = (exSets[id] || [{peso:'',series:'',reps:''}]);
   return sets.map((st, i) => ({
