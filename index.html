@@ -375,7 +375,7 @@
       </div>
       <div class="export-box" style="margin-top:12px;">
         <h3>¿Qué contiene el archivo?</h3>
-        <p>Una fila por ejercicio por sesión, con columnas: Fecha, Ejercicio, Categoría, Peso, Series, Repeticiones y Observaciones.</p>
+        <p>Una fila por ejercicio por sesión, con columnas Fecha, Ejercicio, Categoría, Peso/Series/Reps o Tiempo/Distancia/Calorías (según el tipo de ejercicio) y Observaciones.</p>
       </div>
     </div>
 
@@ -551,6 +551,19 @@ function cardioRitmo(id, vals){
   if (id === 'swim') return (t/d).toFixed(3) + ' min/m';
   return null;
 }
+function formatSumVals(exId, ej){
+  const exDef = EXERCISES.find(e => e.id === exId);
+  if (exDef?.cat === 'Calentamiento' || exDef?.cat === 'Estiramientos') return '';
+  const cfg = CARDIO_FIELDS[exId];
+  if (cfg) {
+    return cfg.map(f => {
+      const val = ej[f.key] || 0;
+      const unidad = f.label.match(/\((.*?)\)/)?.[1] || '';
+      return `${val}${unidad}`;
+    }).join(' · ');
+  }
+  return `${ej.peso||0}kg · ${ej.series||0}x${ej.reps||0}`;
+}  
 // ═══════════════════════════════════════════════════════════════
 // ESTADO
 // ═══════════════════════════════════════════════════════════════
@@ -923,7 +936,7 @@ function getData(id){
   const ex = EXERCISES.find(e => e.id === id);
 
   if (ex?.cat === 'Calentamiento' || ex?.cat === 'Estiramientos') {
-    return [{peso:'', series:'', reps:'', obs:'', realizado: (warmupDone[id] !== false) ? 'Sí' : 'No'}];
+    return [{peso:'', series:'', reps:'', tiempo:'', distancia:'', calorias:'', obs:'', realizado: (warmupDone[id] !== false) ? 'Sí' : 'No'}];
   }
 
   const obs = document.getElementById('o-'+id)?.value;
@@ -932,19 +945,24 @@ function getData(id){
 
   return sets.map((st,i) => {
     if (cardioCfg) {
-      const vals = cardioCfg.map(f => st[f.key] ?? '');
-      return {peso: vals[0]||'', series: vals[1]||'', reps: vals[2]||'', obs: i===0 ? obs : '', realizado: 'Sí'};
+      return {
+        peso:'', series:'', reps:'',
+        tiempo: st.tiempo || '', distancia: st.distancia || '', calorias: st.calorias || '',
+        obs: i===0 ? obs : '', realizado: 'Sí'
+      };
     }
-    return {peso: st.peso, series: st.series, reps: st.reps, obs: i===0 ? obs : '', realizado: 'Sí'};
+    return {peso: st.peso, series: st.series, reps: st.reps, tiempo:'', distancia:'', calorias:'', obs: i===0 ? obs : '', realizado: 'Sí'};
   });
 }
 
 // ═══════════════════════════════════════════════════════════════
 // ENVÍO DE SESIÓN
 // ═══════════════════════════════════════════════════════════════
-function calcularVolumen(ejercicios) {
-  return (ejercicios||[]).reduce((total, ej) => {
-    return total + ((parseFloat(ej.peso)||0) * (parseInt(ej.series)||0) * (parseInt(ej.reps)||0));
+function calcularVolumen(ejercicios){
+  return ejercicios.reduce((total, ej) => {
+    const exDef = EXERCISES.find(e => e.id === ej.id);
+    if (CARDIO_FIELDS[exDef?.id]) return total;
+    return total + (parseFloat(ej.peso)||0) * (parseInt(ej.series)||0) * (parseInt(ej.reps)||0);
   }, 0);
 }
 
@@ -1004,24 +1022,12 @@ function mostrarConfirmacion(s) {
     : '';
   document.getElementById('summary-rows').innerHTML = filled.map(e => {
     if (e._sets && e._sets.length > 1) {
-      const setsLine = e._sets
-        .filter(st=>st.peso||st.series||st.reps)
-        .map((st,i)=>{
-          const p=[];
-          if(st.peso)   p.push(st.peso+' kg');
-          if(st.series) p.push(st.series+' s');
-          if(st.reps)   p.push(st.reps+' r');
-          return `<span style="font-size:10px;color:var(--text3);">S${i+1}</span> ${p.join('·')}`;
-        }).join('  ');
+      const setsLine = e.sets.filter(st=>st.peso||st.series||st.reps||st.tiempo||st.distancia||st.calorias).map((st,i)=>{ return `<span style="font-size:10px;color:var(--text3)">S${i+1}</span> ${formatSumVals(e.id, st)}`; }).join(' · ');
       return `<div class="summary-row" style="flex-direction:column;align-items:flex-start;gap:2px;">
         <span class="sum-name">${e.nombre}</span>
         <span class="sum-vals" style="font-size:11px;">${setsLine||'—'}</span></div>`;
     }
-    const p=[];
-    if(e.peso)   p.push(e.peso+' kg');
-    if(e.series) p.push(e.series+' series');
-    if(e.reps)   p.push(e.reps+' reps');
-    if((e.cat==='Calentamiento'||e.cat==='Estiramientos')&&e.realizado) p.push('Hecho');
+    const p=[]; const fsv = formatSumVals(e.id, e); if(fsv) p.push(fsv); if((e.cat==='Calentamiento'||e.cat==='Estiramientos')&&e.realizado)p.push('Hecho');
     return `<div class="summary-row"><span class="sum-name">${e.nombre}</span>
       <span class="sum-vals">${p.join(' · ')||'—'}</span></div>`;
   }).join('') + volumenRow;
@@ -1118,23 +1124,15 @@ function renderHistorial(sesiones) {
           ${agrupados.map(e => {
             // Si hay múltiples filas del mismo ejercicio (multi-set), mostrarlas
             if (e._rows.length > 1) {
-              const setsStr = e._rows.map((r,ri) => {
-                const p=[];
-                if(r.peso)   p.push(r.peso+' kg');
-                if(r.series) p.push(r.series+'s');
-                if(r.reps)   p.push(r.reps+'r');
-                return `S${ri+1}: ${p.join('·')||'—'}`;
-              }).join('  ');
+              const exDef = EXERCISES.find(x => x.nombre === e.nombre);
+              const setsStr = e.rows.map((r,ri)=>`S${ri+1} ${formatSumVals(exDef?.id, r)}`).join(' · ');
               return `<div class="history-ex-row" style="flex-direction:column;align-items:flex-start;gap:1px;">
                 <span style="font-weight:500;">${e.nombre}</span>
                 <span style="color:var(--text2);font-family:var(--mono);font-size:11px;">${setsStr}</span>
               </div>`;
             }
-            const p=[];
-            if(e.peso)   p.push(e.peso+' kg');
-            if(e.series) p.push(e.series+' series');
-            if(e.reps)   p.push(e.reps+' reps');
-            if((e.cat==='Calentamiento'||e.cat==='Estiramientos')&&e.realizado) p.push('Hecho');
+            const exDef = EXERCISES.find(x => x.nombre === e.nombre);
+const p=[]; const fsv = formatSumVals(exDef?.id, e); if(fsv) p.push(fsv); if((e.cat==='Calentamiento'||e.cat==='Estiramientos')&&e.realizado)p.push('Hecho');
             return `<div class="history-ex-row">
               <span style="font-weight:500;">${e.nombre}</span>
               <span style="color:var(--text2);font-family:var(--mono);font-size:12px;">${p.join(' · ')||'—'}</span>
@@ -1243,24 +1241,28 @@ async function confirmDelete() {
 // ═══════════════════════════════════════════════════════════════
 // CSV EXPORT
 // ═══════════════════════════════════════════════════════════════
-const CSV_HEADERS=['Fecha','Cliente','Ejercicio','Categoría','Peso (kg)','Series','Repeticiones','Volumen ejercicio (kg)','Volumen sesión (kg)','Observaciones','Obs. general'];
+const CSV_HEADERS = ['Fecha','Cliente','Ejercicio','Categoría','Peso (kg)','Series','Repeticiones','Tiempo (min)','Distancia','Calorías','Volumen ejercicio (kg)','Volumen sesión (kg)','Observaciones','Obs. general'];
 function sesionesToRows(sesiones){
-  const rows=[];
-  sesiones.forEach(s=>(s.ejercicios||[]).forEach(e=>{
-    if(!e.peso&&!e.series&&!e.reps&&!e.obs&&!e.realizado) return;
-    const peso=parseFloat(e.peso)||0;
-    const series=parseInt(e.series)||0;
-    const reps=parseInt(e.reps)||0;
-    const volEj=peso*series*reps;
-    const volSesion = parseFloat(s.volumenTotal) || calcularVolumen(s.ejercicios||[]);
-    rows.push([
-      s.fecha, s.cliente, e.nombre, e.cat,
-      e.peso||'', e.series||'', e.reps||'',
-      volEj||'', volSesion||'',
-      e.obs||(e.realizado?'Hecho':''),
-      s.obsGeneral||''
-    ]);
-  }));
+  const rows = [];
+  sesiones.forEach(s => {
+    s.ejercicios.forEach(e => {
+      if (!e.peso && !e.series && !e.reps && !e.obs && !e.realizado && !e.tiempo && !e.distancia && !e.calorias) return;
+      const exDef = EXERCISES.find(x => x.nombre === e.nombre);
+      const esCardio = !!CARDIO_FIELDS[exDef?.id];
+      const peso = parseFloat(e.peso)||0;
+      const series = parseInt(e.series)||0;
+      const reps = parseInt(e.reps)||0;
+      const volEj = esCardio ? '' : (peso*series*reps);
+      const volSesion = parseFloat(s.volumenTotal) || calcularVolumen(s.ejercicios);
+      rows.push([
+        s.fecha, s.cliente, e.nombre, e.cat,
+        e.peso||'', e.series||'', e.reps||'',
+        e.tiempo||'', e.distancia||'', e.calorias||'',
+        volEj, volSesion,
+        e.obs||(e.realizado?'Hecho':''), s.obsGeneral
+      ]);
+    });
+  });
   return rows;
 }
 function descargarCSV(rows,filename){
