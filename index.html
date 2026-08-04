@@ -919,24 +919,24 @@ function checkDot(id) {
   const dot=document.getElementById('dot-'+id);
   if(dot) dot.className='status-dot'+(filled?' ok':'');
 }
-function getData(id) {
-  const ex=EXERCISES.find(e=>e.id===id);
-  if(ex?.cat==='Calentamiento' || ex?.cat==='Estiramientos')
-    const cardioCfg = CARDIO_FIELDS[id];
-return sets.map((st,i) => {
-  if (cardioCfg) {
-    const vals = cardioCfg.map(f => st[f.key] ?? '');
-    return {peso: vals[0]||'', series: vals[1]||'', reps: vals[2]||'', obs: i===0 ? obs : '', realizado: 'Sí'};
+function getData(id){
+  const ex = EXERCISES.find(e => e.id === id);
+
+  if (ex?.cat === 'Calentamiento' || ex?.cat === 'Estiramientos') {
+    return [{peso:'', series:'', reps:'', obs:'', realizado: (warmupDone[id] !== false) ? 'Sí' : 'No'}];
   }
-  return {peso: st.peso, series: st.series, reps: st.reps, obs: i===0 ? obs : '', realizado: 'Sí'};
-});
-  const obs = document.getElementById('o-'+id)?.value||'';
-  const sets = (exSets[id] || [{peso:'',series:'',reps:''}]);
-  return sets.map((st, i) => ({
-    peso: st.peso||'', series: st.series||'', reps: st.reps||'',
-    obs:  i===0 ? obs : '',
-    realizado: ''
-  }));
+
+  const obs = document.getElementById('o-'+id)?.value;
+  const sets = exSets[id] || [{peso:'', series:'', reps:''}];
+  const cardioCfg = CARDIO_FIELDS[id];
+
+  return sets.map((st,i) => {
+    if (cardioCfg) {
+      const vals = cardioCfg.map(f => st[f.key] ?? '');
+      return {peso: vals[0]||'', series: vals[1]||'', reps: vals[2]||'', obs: i===0 ? obs : '', realizado: 'Sí'};
+    }
+    return {peso: st.peso, series: st.series, reps: st.reps, obs: i===0 ? obs : '', realizado: 'Sí'};
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════
