@@ -669,13 +669,24 @@ function selectAll(){ EXERCISES.forEach(e=>selected.add(e.id)); renderChips(); }
 function clearAll(){ selected.clear(); renderChips(); }
 
 function goToRegister(){
-  if(!selected.size){ banner('banner-chips','Selecciona al menos un ejercicio','err'); return; }
-  hideBanner('banner-chips');
-  warmupDone = {};
-  exSets = {};
-  renderEntries();
-  document.getElementById('paso-1').style.display = 'none';
-  document.getElementById('paso-2').style.display = 'block';
+  try{
+    if(!selected.size){
+      banner('banner-chips','Selecciona al menos un ejercicio','err');
+      return;
+    }
+    hideBanner('banner-chips');
+    warmupDone = {};
+    exSets = {};
+    renderEntries();
+    const p1 = document.getElementById('paso-1');
+    const p2 = document.getElementById('paso-2');
+    if(p1) p1.style.display = 'none';
+    if(p2) p2.style.display = 'block';
+    window.scrollTo(0,0);
+  }catch(e){
+    console.error('goToRegister error:', e);
+    banner('banner-chips','Error al continuar. Revisa la consola.','err');
+  }
 }
 
 function volverPaso1(){
