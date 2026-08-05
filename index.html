@@ -710,13 +710,15 @@ function renderSetsDOM(id){
   if(cardioCfg){
     cont.innerHTML = sets.map((st,i)=>{
       const inputs = cardioCfg.map(f => {
-  const val = st[f.key] || '';
-  const step = f.key === 'tiempo_seg' ? '1' : '0.1';
-  return `<div>
-    <label class="field-label">${f.label}</label>
-    <input type="number" value="${val}" placeholder="0" min="0" step="${step}" inputmode="decimal" oninput="updateSet('${id}',${i},'${f.key}',this.value)">
-  </div>`;
-}).join('');
+        const val = st[f.key] || '';
+        const step = f.key === 'tiempo_seg' ? '1' : '0.1';
+        return `<div>
+          <label class="field-label">${f.label}</label>
+          <input type="number" value="${val}" placeholder="0" min="0" step="${step}" inputmode="decimal" oninput="updateSet('${id}',${i},'${f.key}',this.value)">
+        </div>`;
+      }).join('');
+      return `<div class="set-row">${inputs}</div>`;
+    }).join('');
     return;
   }
 
