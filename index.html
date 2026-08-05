@@ -1273,16 +1273,23 @@ document.getElementById('trainer-pass')?.addEventListener('keydown', e=>{ if(e.k
 
 async function cargarPanelEntrenador(){
   const cont = document.getElementById('trainer-clients-list');
-  cont.innerHTML = data.clientes.map(c => `
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
-    <div><p style="font-size:14px;font-weight:500">${c.name}</p><p style="font-size:12px;color:var(--text2)">${c.count} sesiones</p></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-sm btn-outline" onclick="verHistorialTrainer('${c.name}')">Ver</button>
-      <button class="btn btn-sm" onclick="exportarClienteTrainer('${c.name}')">CSV</button>
-      <button class="btn btn-sm btn-red" onclick="borrarClienteTrainer('${c.name}')">Borrar</button>
-    </div>
-  </div>
-`).join('');
+  cont.innerHTML = '<p style="font-size:13px;color:var(--text2)">Cargando desde Sheets...</p>';
+  try{
+    const data = await sheetsGet({action:'todos'});
+    if(!data.ok || !data.clientes.length){
+      cont.innerHTML = '<p style="font-size:13px;color:var(--text2)">No hay clientes registrados aún.</p>';
+      return;
+    }
+    cont.innerHTML = data.clientes.map(c => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div><p style="font-size:14px;font-weight:500">${c.name}</p><p style="font-size:12px;color:var(--text2)">${c.count} sesiones</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-outline" onclick="verHistorialTrainer('${c.name}')">Ver</button>
+          <button class="btn btn-sm" onclick="exportarClienteTrainer('${c.name}')">CSV</button>
+          <button class="btn btn-sm btn-red" onclick="borrarClienteTrainer('${c.name}')">Borrar</button>
+        </div>
+      </div>
+    `).join('');
   }catch(e){
     cont.innerHTML = '<p style="font-size:13px;color:var(--red)">Error de conexión con Sheets.</p>';
   }
