@@ -519,11 +519,13 @@ const EXERCISES = [
 ];
 const CARDIO_FIELDS = {
   running: [
-    {key:'tiempo', label:'Tiempo (min)'},
+    {key:'tiempo_min', label:'Minutos'},
+    {key:'tiempo_seg', label:'Segundos'},
     {key:'distancia', label:'Distancia (km)'}
   ],
   swim: [
-    {key:'tiempo', label:'Tiempo (min)'},
+    {key:'tiempo_min', label:'Minutos'},
+    {key:'tiempo_seg', label:'Segundos'},
     {key:'distancia', label:'Distancia (m)'}
   ],
   bike: [
@@ -556,6 +558,15 @@ function formatSumVals(exId, ej){
   if (exDef?.cat === 'Calentamiento' || exDef?.cat === 'Estiramientos') return '';
   const cfg = CARDIO_FIELDS[exId];
   if (cfg) {
+    // Para Running y Natación con minutos+segundos
+    if (exId === 'running' || exId === 'swim') {
+      const min = ej.tiempo_min || 0;
+      const seg = ej.tiempo_seg || 0;
+      const tiempoStr = `${min}:${String(seg).padStart(2,'0')}`;
+      const dist = ej.distancia || 0;
+      return `${tiempoStr} min · ${dist}${exId==='running'?' km':' m'}`;
+    }
+    // Para los demás (bike, row, skierg)
     return cfg.map(f => {
       const val = ej[f.key] || 0;
       const unidad = f.label.match(/\((.*?)\)/)?.[1] || '';
@@ -563,7 +574,7 @@ function formatSumVals(exId, ej){
     }).join(' · ');
   }
   return `${ej.peso||0}kg · ${ej.series||0}x${ej.reps||0}`;
-}  
+}
 // ═══════════════════════════════════════════════════════════════
 // ESTADO
 // ═══════════════════════════════════════════════════════════════
@@ -795,23 +806,22 @@ function renderSetsDOM(id){
   const cardioCfg = CARDIO_FIELDS[id];
 
   if (cardioCfg) {
-    cont.innerHTML = sets.map((st,i)=>{
-      const inputs = cardioCfg.map(f=>`
-        <div>
-          <label class="field-label">${f.label}</label>
-          <input type="number" value="${st[f.key]||''}" placeholder="0" min="0" step="0.1" inputmode="decimal"
-            oninput="updateSet('${id}',${i},'${f.key}',this.value)">
-        </div>`).join('');
-      const ritmo = cardioRitmo(id, st);
-      const ritmoHtml = ritmo ? `<div style="font-size:11px;color:var(--text2);margin-top:4px">Ritmo: ${ritmo}</div>` : '';
-      return `<div class="set-row" style="grid-template-columns:repeat(${cardioCfg.length},minmax(0,1fr)) 28px" id="set-row-${id}-${i}">
-        ${inputs}
-        <button class="btn-del-set" onclick="removeSet('${id}',${i})" title="Eliminar registro">×</button>
-        ${ritmoHtml}
-      </div>`;
-    }).join('');
-    return;
-  }
+  const inputs = cardioCfg.map(f => {
+    const val = st[f.key] || '';
+    const step = f.key.includes('seg') ? '1' : '0.1';
+    return `<div>
+      <label class="field-label">${f.label}</label>
+      <input type="number" value="${val}" placeholder="0" min="0" step="${step}" inputmode="decimal" oninput="updateSet('${id}',${i},'${f.key}',this.value)">
+    </div>`;
+  }).join('');
+  
+  const ritmo = cardioRitmo(id, st);
+  const ritmoHtml = ritmo ? `<div style="font-size:11px;color:var(--text2);margin-top:4px">Ritmo: ${ritmo}</div>` : '';
+  
+  return `<div class="set-row" style="grid-template-columns:repeat(${cardioCfg.length},minmax(0,1fr)) 28px">${inputs}
+    <button class="btn-del-set" onclick="removeSet('${id}',${i})" title="Eliminar registro">−</button>
+  </div>${ritmoHtml}`;
+}
 
   cont.innerHTML = sets.map((st,i)=>`<div class="set-row" id="set-row-${id}-${i}">
     <div>${i===0?'<label class="field-label">Peso (kg)</label>':''}<input type="number" value="${st.peso}" placeholder="0" min="0" step="0.5" inputmode="decimal" oninput="updateSet('${id}',${i},'peso',this.value)"></div>
@@ -945,12 +955,16 @@ function getData(id){
 
   return sets.map((st,i) => {
     if (cardioCfg) {
-      return {
-        peso:'', series:'', reps:'',
-        tiempo: st.tiempo || '', distancia: st.distancia || '', calorias: st.calorias || '',
-        obs: i===0 ? obs : '', realizado: 'Sí'
-      };
-    }
+  return sets.map((st,i) => ({
+    peso:'', series:'', reps:'',
+    tiempo_min: st.tiempo_min || '',
+    tiempo_seg: st.tiempo_seg || '',
+    distancia: st.distancia || '',
+    calorias: st.calorias || '',
+    obs: i===0 ? obs : '',
+    realizado: 'Sí'
+  }));
+}
     return {peso: st.peso, series: st.series, reps: st.reps, tiempo:'', distancia:'', calorias:'', obs: i===0 ? obs : '', realizado: 'Sí'};
   });
 }
