@@ -246,7 +246,17 @@
       <div class="status-banner" id="banner-backup" style="margin-top:8px;margin-bottom:0"></div>
     </div>
   </div>
-
+<!-- HISTORIAL CLIENTE (vista entrenador) -->
+<div class="screen" id="s-trainer-historial">
+  <button class="back-btn" onclick="goTo('s-trainer')">‹ Volver al panel</button>
+  <div style="margin-bottom:1.5rem">
+    <div class="trainer-badge">Entrenador</div>
+    <p style="font-weight:600;font-size:16px" id="trainer-hist-nombre"></p>
+  </div>
+  <div class="status-banner" id="banner-trainer-historial"></div>
+  <div id="trainer-historial-container"></div>
+</div>
+  
   <!-- PANEL CLIENTE -->
   <div class="screen" id="s-panel">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
@@ -1017,7 +1027,35 @@ async function cargarHistorial(){
     if(!cached) cont.innerHTML = '<p style="font-size:13px;color:var(--text2)">Sin conexión. Comprueba tu red.</p>';
   }
 }
+async function verHistorialTrainer(nombre){
+  trainerOpenClient = nombre;
+  document.getElementById('trainer-hist-nombre').textContent = nombre;
+  goTo('s-trainer-historial');
 
+  const cont = document.getElementById('trainer-historial-container');
+  const cached = cacheGet(`hist_${nombre}`);
+  if(cached){
+    renderHistorial(cached, 'trainer-historial-container', true);
+    return;
+  }
+
+  banner('banner-trainer-historial','Cargando desde Google Sheets...','loading');
+  cont.innerHTML = '';
+  try{
+    const data = await sheetsGet({action:'historial', cliente: nombre});
+    hideBanner('banner-trainer-historial');
+    if(data.ok){
+      data.sesiones.forEach(s=>{ if(!s.volumenTotal) s.volumenTotal = calcularVolumen(s.ejercicios); });
+      cacheSet(`hist_${nombre}`, data.sesiones);
+      renderHistorial(data.sesiones, 'trainer-historial-container', true);
+    } else {
+      banner('banner-trainer-historial', data.error || 'Error cargando historial', 'err');
+    }
+  }catch(e){
+    hideBanner('banner-trainer-historial');
+    cont.innerHTML = '<p style="font-size:13px;color:var(--text2)">Sin conexión. Comprueba tu red.</p>';
+  }
+}
 function agruparEjercicios(ejercicios){
   const map = new Map();
   ejercicios.forEach(e=>{
@@ -1028,12 +1066,14 @@ function agruparEjercicios(ejercicios){
   return [...map.values()];
 }
 
-function renderHistorial(sesiones){
-  const cont = document.getElementById('historial-container');
+function renderHistorial(sesiones, containerId='historial-container', readOnly=false){
+  const cont = document.getElementById(containerId);
   if(!sesiones || !sesiones.length){
-    cont.innerHTML = '<p style="font-size:13px;color:var(--text2)">Aún no tienes sesiones registradas.</p>';
+    cont.innerHTML = '<p style="font-size:13px;color:var(--text2)">Aún no hay sesiones registradas.</p>';
     return;
   }
+  // ... deja el resto de la función igual, pero sustituye la línea del botón de borrar por:
+  // ${readOnly ? '' : `<button class="delete-session-btn" onclick="abrirDeleteOverlay('${s.id}','${s.fecha}')">Eliminar esta sesión</button>`}
 
   const totalEj = sesiones.reduce((a,s)=>a + (s.ejercicios||[]).filter(e=>e.peso||e.series||e.reps||e.obs||e.realizado||e.tiempo||e.distancia||e.calorias).length, 0);
   const volumenAcumulado = sesiones.reduce((a,s)=>a + parseFloat(s.volumenTotal||0), 0);
@@ -1076,7 +1116,7 @@ function renderHistorial(sesiones){
             return `<div class="history-ex-row"><span style="font-weight:500">${e.nombre}</span><span style="color:var(--text2);font-family:var(--mono);font-size:12px">${p.join(' · ')}</span></div>`;
           }).join('')}
           ${s.obsGeneral ? `<p style="font-size:12px;color:var(--text2);margin-top:8px;font-style:italic">${s.obsGeneral}</p>` : ''}
-          <button class="delete-session-btn" onclick="abrirDeleteOverlay('${s.id}','${s.fecha}')">Eliminar esta sesión</button>
+          ${readOnly ? '' : `<button class="delete-session-btn" onclick="abrirDeleteOverlay('${s.id}','${s.fecha}')">Eliminar esta sesión</button>`}
         </div>
       </div>`;
     }).join('')}
@@ -1233,19 +1273,16 @@ document.getElementById('trainer-pass')?.addEventListener('keydown', e=>{ if(e.k
 
 async function cargarPanelEntrenador(){
   const cont = document.getElementById('trainer-clients-list');
-  cont.innerHTML = '<p style="font-size:13px;color:var(--text2)">Cargando desde Sheets...</p>';
-  try{
-    const data = await sheetsGet({action:'todos'});
-    if(!data.ok || !data.clientes.length){ cont.innerHTML = '<p style="font-size:13px;color:var(--text2)">No hay clientes registrados aún.</p>'; return; }
-    cont.innerHTML = data.clientes.map(c=>`
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
-        <div><p style="font-size:14px;font-weight:500">${c.name}</p><p style="font-size:12px;color:var(--text2)">${c.count} sesiones</p></div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-sm" onclick="exportarClienteTrainer('${c.name}')">CSV</button>
-          <button class="btn btn-sm btn-red" onclick="borrarClienteTrainer('${c.name}')">Borrar</button>
-        </div>
-      </div>
-    `).join('');
+  cont.innerHTML = data.clientes.map(c => `
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+    <div><p style="font-size:14px;font-weight:500">${c.name}</p><p style="font-size:12px;color:var(--text2)">${c.count} sesiones</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-outline" onclick="verHistorialTrainer('${c.name}')">Ver</button>
+      <button class="btn btn-sm" onclick="exportarClienteTrainer('${c.name}')">CSV</button>
+      <button class="btn btn-sm btn-red" onclick="borrarClienteTrainer('${c.name}')">Borrar</button>
+    </div>
+  </div>
+`).join('');
   }catch(e){
     cont.innerHTML = '<p style="font-size:13px;color:var(--red)">Error de conexión con Sheets.</p>';
   }
