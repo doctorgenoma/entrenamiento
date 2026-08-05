@@ -624,15 +624,23 @@ window.addEventListener('online', ()=>{
 });
 
 function loginCliente(){
-  const val = document.getElementById('client-name').value.trim();
-  if(!val){ banner('banner-login','Por favor escribe tu nombre','err'); return; }
-  clientName = val;
-  document.getElementById('panel-nombre').textContent = clientName;
-  document.getElementById('panel-avatar').textContent = initials(clientName);
-  selected.clear();
-  renderChips();
-  showTab('nueva');
-  goTo('s-panel');
+  try{
+    const val = document.getElementById('client-name').value.trim();
+    if(!val){
+      banner('banner-login','Por favor escribe tu nombre','err');
+      return;
+    }
+    clientName = val;
+    document.getElementById('panel-nombre').textContent = clientName;
+    document.getElementById('panel-avatar').textContent = initials(clientName);
+    selected.clear();
+    renderChips();
+    showTab('nueva');
+    goTo('s-panel');
+  }catch(e){
+    console.error('loginCliente error:', e);
+    banner('banner-login','Error al entrar. Revisa la consola.','err');
+  }
 }
 
 function logout(){
