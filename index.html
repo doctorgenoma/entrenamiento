@@ -701,15 +701,14 @@ function renderSetsDOM(id){
   const cardioCfg = CARDIO_FIELDS[id];
   if(cardioCfg){
     cont.innerHTML = sets.map((st,i)=>{
-      const inputs = cardioCfg.map(f=>{
-        const val = st[f.key] || '';
-        const step = f.key.includes('seg') ? '1' : '0.1';
-        return `<div><label class="field-label">${f.label}</label><input type="number" value="${val}" placeholder="0" min="0" step="${step}" inputmode="decimal" oninput="updateSet('${id}',${i},'${f.key}',this.value)"></div>`;
-      }).join('');
-      const ritmo = cardioRitmo(id, st);
-      const ritmoHtml = ritmo ? `<div style="font-size:11px;color:var(--text2);margin-top:4px">Ritmo: ${ritmo}</div>` : '';
-      return `<div class="set-row" style="grid-template-columns:repeat(${cardioCfg.length},minmax(0,1fr)) 28px">${inputs}<button class="btn-del-set" onclick="removeSet('${id}',${i})" title="Eliminar registro">−</button></div>${ritmoHtml}`;
-    }).join('');
+      const inputs = cardioCfg.map(f => {
+  const val = st[f.key] || '';
+  const step = f.key === 'tiempo_seg' ? '1' : '0.1';
+  return `<div>
+    <label class="field-label">${f.label}</label>
+    <input type="number" value="${val}" placeholder="0" min="0" step="${step}" inputmode="decimal" oninput="updateSet('${id}',${i},'${f.key}',this.value)">
+  </div>`;
+}).join('');
     return;
   }
 
@@ -850,12 +849,10 @@ function formatSumVals(exId, ej){
   const cfg = CARDIO_FIELDS[exId];
   if(cfg){
     if(exId === 'running' || exId === 'swim'){
-      const min = ej.tiempo_min || 0;
-      const seg = ej.tiempo_seg || 0;
-      const tiempoStr = `${min}:${String(seg).padStart(2,'0')}`;
-      const dist = ej.distancia || 0;
-      return `${tiempoStr} min · ${dist}${exId === 'running' ? ' km' : ' m'}`;
-    }
+  const min = ej.tiempo_min || 0;
+  const seg = ej.tiempo_seg || 0;
+  return `${min}:${String(seg).padStart(2,'0')} min · ${ej.distancia || 0}${exId==='running'?' km':' m'}`;
+}
     return cfg.map(f=>{
       const val = ej[f.key] || 0;
       const unidad = f.label.match(/\((.*?)\)/)?.[1] || '';
