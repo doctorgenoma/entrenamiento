@@ -858,10 +858,17 @@ function formatSumVals(exId, ej){
   if(exDef?.cat==='Calentamiento' || exDef?.cat==='Estiramientos') return '';
   const cfg = CARDIO_FIELDS[exId];
   if(cfg){
-    if(exId === 'running' || exId === 'swim'){
-  const min = ej.tiempo_min || 0;
-  const seg = ej.tiempo_seg || 0;
-  return `${min}:${String(seg).padStart(2,'0')} min · ${ej.distancia || 0}${exId==='running'?' km':' m'}`;
+    if(exId==='running' || exId==='swim'){
+  let min = ej.tiempo_min;
+  let seg = ej.tiempo_seg;
+  if((min===undefined || min===null) && ej.tiempo){
+    const partes = String(ej.tiempo).split(':');
+    min = parseInt(partes[0],10) || 0;
+    seg = parseInt(partes[1],10) || 0;
+  }
+  min = min || 0;
+  seg = seg || 0;
+  return `${min}:${String(seg).padStart(2,'0')} min ${ej.distancia||0}${exId==='running'?' km':' m'}`;
 }
     return cfg.map(f=>{
       const val = ej[f.key] || 0;
@@ -886,28 +893,32 @@ function getData(id){
   const sets = exSets[id] || [{peso:'',series:'',reps:''}];
   const cardioCfg = CARDIO_FIELDS[id];
 
-  return sets.map((st,i)=>{
-    if(cardioCfg){
-      return {
-        peso:'',series:'',reps:'',
-        tiempo_min: st.tiempo_min || '',
-        tiempo_seg: st.tiempo_seg || '',
-        distancia: st.distancia || '',
-        calorias: st.calorias || '',
-        obs: i===0 ? obs : '',
-        realizado: 'Sí'
-      };
+ return sets.map((st,i)=>{
+  if(cardioCfg){
+    let tiempoOut = '';
+    if(cardioCfg.some(f=>f.key==='tiempo_min')){
+      const min = st.tiempo_min || 0;
+      const seg = st.tiempo_seg || 0;
+      if(min || seg) tiempoOut = `${min}:${String(seg).padStart(2,'0')}`;
+    } else if(st.tiempo){
+      tiempoOut = st.tiempo;
     }
     return {
-      peso: st.peso || '',
-      series: st.series || '',
-      reps: st.reps || '',
-      tiempo:'', distancia:'', calorias:'',
+      peso:'', series:'', reps:'',
+      tiempo_min: st.tiempo_min, tiempo_seg: st.tiempo_seg,
+      distancia: st.distancia, calorias: st.calorias,
+      tiempo: tiempoOut,
       obs: i===0 ? obs : '',
       realizado: 'Sí'
     };
-  });
-}
+  }
+  return {
+    peso: st.peso, series: st.series, reps: st.reps,
+    tiempo:'', distancia:'', calorias:'',
+    obs: i===0 ? obs : '',
+    realizado: 'Sí'
+  };
+});
 
 function calcularVolumen(ejercicios){
   return ejercicios.reduce((total, ej)=>{
