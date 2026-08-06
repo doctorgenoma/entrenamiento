@@ -265,7 +265,8 @@
         <div class="avatar" id="panel-avatar"></div>
         <div>
           <p style="font-weight:600;font-size:16px" id="panel-nombre"></p>
-          <p style="font-size:12px;color:var(--text2)">Panel de entrenamiento</p>
+           <p style="font-size:12px;color:var(--text2)">Panel de entrenamiento</p>
+           <span id="racha-badge" style="display:none;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--yellow);background:var(--yellow-lt);padding:2px 8px;border-radius:999px;margin-top:4px"></span>
         </div>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Salir</button>
@@ -1046,37 +1047,108 @@ function mostrarConfirmacion(s){
 }
 
 function nuevaSesion(){
-  selected.clear();
-  openEntry = null;
-  exSets = {};
-  entryOrder = [];
+  selected.clear(); openEntry = null; exSets = {}; entryOrder = [];
   document.getElementById('obs-general').value = '';
   document.getElementById('paso-2').style.display = 'none';
   document.getElementById('paso-1').style.display = 'block';
   renderChips();
   showTab('nueva');
   goTo('s-panel');
+  actualizarRacha();
 }
 
 function verHistorial(){ showTab('historial'); goTo('s-panel'); }
 
+function getWeekKey(d){
+  const jan4 = new Date(d.getFullYear(), 0, 4);
+  const startOfWeek = new Date(jan4);
+  startOfWeek.setDate(jan4.getDate() - jan4.getDay() + 1);
+  const weekNum = Math.ceil((((d - startOfWeek) / 86400000) + 1) / 7);
+  return `${d.getFullYear()}-W${String(weekNum).padStart(2,'0')}`;
+}
+  
+function parseFechaSesion(raw){
+  if(!raw) return null;
+  let d;
+  if(typeof raw === 'string' && /\d{2}\/\d{2}\/\d{4}/.test(raw)){
+    const [dp, tp] = raw.split(' ');
+    const [dd,mm,yyyy] = dp.split('/');
+    d = tp ? new Date(`${yyyy}-${mm}-${dd}T${tp}`) : new Date(`${yyyy}-${mm}-${dd}T12:00:00`);
+  } else {
+    d = new Date(raw);
+  }
+  if(isNaN(d)) return null;
+  d.setHours(0,0,0,0);
+  return d;
+}
+function calcularRacha(sesiones){
+  if(!sesiones || !sesiones.length) return {semanas: 0, sesionesEstaSem: 0};
+
+  const weekMap = {};
+  sesiones.forEach(s=>{
+    const d = parseFechaSesion(s.fecha);
+    if(!d) return;
+    const key = getWeekKey(d);
+    weekMap[key] = (weekMap[key] || 0) + 1;
+  });
+
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const thisWeekKey = getWeekKey(hoy);
+  const sesionesEstaSem = weekMap[thisWeekKey] || 0;
+
+  let semanas = 0;
+  if(sesionesEstaSem >= 3) semanas++;
+
+  const cursor = new Date(hoy);
+  cursor.setDate(cursor.getDate() - 7);
+  while(true){
+    const key = getWeekKey(cursor);
+    const count = weekMap[key] || 0;
+    if(count >= 3){
+      semanas++;
+      cursor.setDate(cursor.getDate() - 7);
+    } else {
+      break;
+    }
+  }
+
+  return {semanas, sesionesEstaSem};
+}
+
+function updateRachaDisplay(sesiones){
+  const badge = document.getElementById('racha-badge');
+  if(!badge) return;
+  const {semanas, sesionesEstaSem} = calcularRacha(sesiones);
+
+  if(semanas >= 1){
+    badge.textContent = `🔥 ${semanas} ${semanas === 1 ? 'semana' : 'semanas'} con 3+ sesiones`;
+    badge.style.display = 'inline-flex';
+  } else if(sesionesEstaSem > 0){
+    badge.textContent = `💪 ${sesionesEstaSem}/3 esta semana`;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
 async function cargarHistorial(){
   const cont = document.getElementById('historial-container');
   const cached = cacheGet(`hist_${clientName}`);
-  if(cached){ renderHistorial(cached); return; }
+  if(cached){ renderHistorial(cached); updateRachaDisplay(cached); return; }
   banner('banner-historial','Cargando desde Google Sheets...','loading');
   cont.innerHTML = '';
   try{
     const data = await sheetsGet({action:'historial', cliente: clientName});
     hideBanner('banner-historial');
     if(data.ok){
-      data.sesiones.forEach(s=>{ if(!s.volumenTotal) s.volumenTotal = calcularVolumen(s.ejercicios || []); });
+      data.sesiones.forEach(s=>{ if(!s.volumenTotal) s.volumenTotal = calcularVolumen(s.ejercicios); });
       cacheSet(`hist_${clientName}`, data.sesiones);
       renderHistorial(data.sesiones);
+      updateRachaDisplay(data.sesiones);
     } else {
       banner('banner-historial', data.error || 'Error cargando historial', 'err');
     }
-  } catch(e){
+  }catch(e){
     hideBanner('banner-historial');
     if(!cached) cont.innerHTML = '<p style="font-size:13px;color:var(--text2)">Sin conexión. Comprueba tu red.</p>';
   }
