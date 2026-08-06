@@ -176,7 +176,8 @@
 
     <div style="margin-bottom:1.25rem">
       <label class="field-label" for="client-name">¿Cuál es tu nombre?</label>
-      <input type="text" id="client-name" placeholder="Escribe tu nombre..." autocomplete="given-name">
+      <input type="text" id="client-name" list="client-names-list" placeholder="Escribe tu nombre..." autocomplete="given-name">
+<datalist id="client-names-list"></datalist>
     </div>
     <button class="btn btn-primary" onclick="loginCliente()">Entrar</button>
     <button class="btn btn-ghost" style="margin-top:8px;font-size:13px" onclick="goTo('s-trainer-login')">Acceso entrenador</button>
@@ -548,6 +549,7 @@ function goTo(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
+  if(id === 's-login') cargarNombresClientes();
 }
 
 function showTab(name){
@@ -628,14 +630,65 @@ window.addEventListener('online', ()=>{
   const pending = queueGetPending();
   pending.forEach(item=>sincronizarSesion(item.session, null));
 });
+  
+function levenshtein(a, b){
+  a = String(a || '').toLowerCase();
+  b = String(b || '').toLowerCase();
+  const m = a.length, n = b.length;
+  const dp = Array.from({length: m + 1}, () => Array(n + 1).fill(0));
+  for(let i=0; i<=m; i++) dp[i][0] = i;
+  for(let j=0; j<=n; j++) dp[0][j] = j;
+  for(let i=1; i<=m; i++){
+    for(let j=1; j<=n; j++){
+      dp[i][j] = Math.min(
+        dp[i-1][j] + 1,
+        dp[i][j-1] + 1,
+        dp[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1)
+      );
+    }
+  }
+  return dp[m][n];
+}
 
-function loginCliente(){
+async function cargarNombresClientes(){
+  const dl = document.getElementById('client-names-list');
+  if(!dl) return;
+
+  const cached = cacheGet('todos_clientes');
+  let clientes = cached;
+
+  if(!clientes){
+    try{
+      const data = await sheetsGet({action:'todos'});
+      if(!data.ok || !data.clientes) return;
+      clientes = data.clientes;
+      cacheSet('todos_clientes', clientes);
+    }catch(e){
+      console.error('cargarNombresClientes error:', e);
+      return;
+    }
+  }
+
+  dl.innerHTML = clientes.map(c => `<option value="${c.name}"></option>`).join('');
+}
+
+async function loginCliente(){
   try{
     const val = document.getElementById('client-name').value.trim();
     if(!val){
       banner('banner-login','Por favor escribe tu nombre','err');
       return;
     }
+
+    const cached = cacheGet('todos_clientes') || [];
+    const exact = cached.find(c => normText(c.name) === normText(val));
+    const similar = exact || cached.find(c => levenshtein(normText(c.name), normText(val)) <= 1);
+
+    if(similar && normText(similar.name) !== normText(val)){
+      const ok = confirm(`¿Quisiste decir "${similar.name}"?`);
+      if(!ok) return;
+    }
+
     clientName = val;
     document.getElementById('panel-nombre').textContent = clientName;
     document.getElementById('panel-avatar').textContent = initials(clientName);
@@ -643,6 +696,7 @@ function loginCliente(){
     renderChips();
     showTab('nueva');
     goTo('s-panel');
+    actualizarRacha();
   }catch(e){
     console.error('loginCliente error:', e);
     banner('banner-login','Error al entrar. Revisa la consola.','err');
@@ -1280,6 +1334,7 @@ async function cargarPanelEntrenador(){
       cont.innerHTML = '<p style="font-size:13px;color:var(--text2)">No hay clientes registrados aún.</p>';
       return;
     }
+    cacheSet('todos_clientes', data.clientes);
     cont.innerHTML = data.clientes.map(c => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
         <div><p style="font-size:14px;font-weight:500">${c.name}</p><p style="font-size:12px;color:var(--text2)">${c.count} sesiones</p></div>
@@ -1294,7 +1349,6 @@ async function cargarPanelEntrenador(){
     cont.innerHTML = '<p style="font-size:13px;color:var(--red)">Error de conexión con Sheets.</p>';
   }
 }
-
 async function exportarClienteTrainer(nombre){
   try{
     const data = await sheetsGet({action:'historial', cliente:nombre});
