@@ -175,13 +175,17 @@
     </div>
 
     <div style="margin-bottom:1.25rem">
-      <label class="field-label" for="client-name">¿Cuál es tu nombre?</label>
-      <input type="text" id="client-name" list="client-names-list" placeholder="Escribe tu nombre..." autocomplete="given-name">
-<datalist id="client-names-list"></datalist>
-    </div>
-    <button class="btn btn-primary" onclick="loginCliente()">Entrar</button>
-    <button class="btn btn-ghost" style="margin-top:8px;font-size:13px" onclick="goTo('s-trainer-login')">Acceso entrenador</button>
-    <div class="status-banner" id="banner-login"></div>
+  <label class="field-label" for="client-name">¿Cuál es tu nombre?</label>
+  <input type="text" id="client-name" list="client-names-list" placeholder="Escribe tu nombre..." autocomplete="given-name">
+  <datalist id="client-names-list"></datalist>
+</div>
+<div style="margin-bottom:1.25rem">
+  <label class="field-label" for="client-pin">PIN (4 dígitos, tú lo eliges la primera vez)</label>
+  <input type="password" id="client-pin" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="current-password">
+</div>
+<button class="btn btn-primary" onclick="loginCliente()">Entrar</button>
+<button class="btn btn-ghost" style="margin-top:8px;font-size:13px" onclick="goTo('s-trainer-login')">Acceso entrenador</button>
+<div class="status-banner" id="banner-login"></div>
   </div>
 
   <!-- LOGIN ENTRENADOR -->
@@ -410,8 +414,15 @@
 
 <script>
 const SCRIPTURL = 'https://script.google.com/macros/s/AKfycbzZOhpl-vMYcoewS1B_YL5LiUlUEH9lQP2utH6huSHp1HNDZpsXL-UHAnWRWTVR3ngEBw/exec';
-const TRAINERPASSWORDLOCAL = 'entrenador2026';
-
+// TRAINER_PASSWORD_LOCAL eliminada: ahora la contraseña se valida
+// en el servidor (Code_v7.gs), nunca en el navegador.
+  
+const AUTH_TOKEN_KEY = 'auth_token';
+function getAuthToken() { return localStorage.getItem(AUTH_TOKEN_KEY) || ''; }
+function setAuthToken(t) {
+  if (t) localStorage.setItem(AUTH_TOKEN_KEY, t);
+  else localStorage.removeItem(AUTH_TOKEN_KEY);
+}
 const EXERCISES = [
   {id:'mov-hombros',nombre:'Movilidad hombros',cat:'Calentamiento'},
   {id:'escap-barra',nombre:'Escápulas en barra',cat:'Calentamiento'},
@@ -543,11 +554,15 @@ function cacheSet(k,v){ cache[k]={v,ts:Date.now()}; }
 function cacheGet(k,ttl=300000){ const e=cache[k]; return e && (Date.now()-e.ts<ttl) ? e.v : null; }
 function cacheDel(k){ delete cache[k]; }
 
-function goTo(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  window.scrollTo(0,0);
-  if(id === 's-login') cargarNombresClientes();
+  window.scrollTo(0, 0);
+  if (id === 's-login') {
+    cargarNombresClientes();
+    const pinEl = document.getElementById('client-pin');
+    if (pinEl) pinEl.value = '';
+  }
 }
 
 function showTab(name){
@@ -594,16 +609,29 @@ function fechaAhora(){
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 
-async function sheetsGet(params){
-  const url = SCRIPTURL + '?' + new URLSearchParams(params).toString();
+async function sheetsGet(params) {
+  if (!params.has('token') && getAuthToken()) params.set('token', getAuthToken());
+  const url = `${SCRIPT_URL}?${params.toString()}`;
   const r = await fetch(url);
-  return await r.json();
+  const data = await r.json();
+  if (!data.ok && data.code === 401) {
+    setAuthToken('');
+    banner('banner-login', 'Tu sesión ha caducado, vuelve a entrar', 'err');
+    goTo('s-login');
+  }
+  return data;
 }
-
-async function sheetsPost(params){
-  const url = SCRIPTURL + '?' + new URLSearchParams(params).toString();
+async function sheetsPost(params) {
+  if (!params.has('token') && getAuthToken()) params.set('token', getAuthToken());
+  const url = `${SCRIPT_URL}?${params.toString()}`;
   const r = await fetch(url);
-  return await r.json();
+  const data = await r.json();
+  if (!data.ok && data.code === 401) {
+    setAuthToken('');
+    banner('banner-login', 'Tu sesión ha caducado, vuelve a entrar', 'err');
+    goTo('s-login');
+  }
+  return data;
 }
 
 async function sincronizarSesion(session, badgeEl){
@@ -648,46 +676,37 @@ function levenshtein(a, b){
   return dp[m][n];
 }
 
-async function cargarNombresClientes(){
+async function cargarNombresClientes() {
   const dl = document.getElementById('client-names-list');
-  if(!dl) return;
-
-  const cached = cacheGet('todos_clientes');
+  if (!dl) return;
+  const cached = cacheGet('nombres_clientes');
   let clientes = cached;
-
-  if(!clientes){
-    try{
-      const data = await sheetsGet({action:'todos'});
-      if(!data.ok || !data.clientes) return;
+  if (!clientes) {
+    try {
+      const data = await sheetsGet(new URLSearchParams({ action: 'nombresClientes' }));
+      if (!data.ok || !data.clientes) return;
       clientes = data.clientes;
-      cacheSet('todos_clientes', clientes);
-    }catch(e){
-      console.error('cargarNombresClientes error:', e);
-      return;
-    }
+      cacheSet('nombres_clientes', clientes);
+    } catch (e) { console.error('cargarNombresClientes error', e); return; }
   }
-
-  dl.innerHTML = clientes.map(c => `<option value="${c.name}"></option>`).join('');
+  dl.innerHTML = clientes.map(c => `<option value="${c.name}">`).join('');
 }
 
-async function loginCliente(){
-  try{
+async function loginCliente() {
+  try {
     const val = document.getElementById('client-name').value.trim();
-    if(!val){
-      banner('banner-login','Por favor escribe tu nombre','err');
-      return;
-    }
+    const pin = document.getElementById('client-pin').value.trim();
+    if (!val) { banner('banner-login', 'Por favor escribe tu nombre', 'err'); return; }
+    if (!pin || pin.length < 4) { banner('banner-login', 'Introduce un PIN de al menos 4 dígitos', 'err'); return; }
 
-    const cached = cacheGet('todos_clientes') || [];
-    const exact = cached.find(c => normText(c.name) === normText(val));
-    const similar = exact || cached.find(c => levenshtein(normText(c.name), normText(val)) <= 1);
+    banner('banner-login', 'Comprobando...', 'loading');
+    const data = await sheetsGet(new URLSearchParams({ action: 'loginCliente', cliente: val, pin }));
+    hideBanner('banner-login');
 
-    if(similar && normText(similar.name) !== normText(val)){
-      const ok = confirm(`¿Quisiste decir "${similar.name}"?`);
-      if(!ok) return;
-    }
+    if (!data.ok) { banner('banner-login', data.error || 'Error al entrar', 'err'); return; }
 
-    clientName = val;
+    setAuthToken(data.token);
+    clientName = data.nombre;
     document.getElementById('panel-nombre').textContent = clientName;
     document.getElementById('panel-avatar').textContent = initials(clientName);
     selected.clear();
@@ -695,19 +714,22 @@ async function loginCliente(){
     showTab('nueva');
     goTo('s-panel');
     actualizarRacha();
-  }catch(e){
-    console.error('loginCliente error:', e);
-    banner('banner-login','Error al entrar. Revisa la consola.','err');
+  } catch (e) {
+    console.error('loginCliente error', e);
+    banner('banner-login', 'Error al entrar. Revisa la consola.', 'err');
   }
 }
 
-function logout(){
+function logout() {
   clientName = '';
+  setAuthToken('');
   document.getElementById('client-name').value = '';
+  const pinEl = document.getElementById('client-pin');
+  if (pinEl) pinEl.value = '';
   goTo('s-login');
 }
-
-document.getElementById('client-name').addEventListener('keydown', e=>{ if(e.key==='Enter') loginCliente(); });
+document.getElementById('client-name').addEventListener('keydown', e => { if (e.key === 'Enter') loginCliente(); });
+document.getElementById('client-pin')?.addEventListener('keydown', e => { if (e.key === 'Enter') loginCliente(); });
 
 function renderChips(){
   const cats = [...new Set(EXERCISES.map(e=>e.cat))];
@@ -1385,14 +1407,22 @@ async function exportarClientePropio(){
   }
 }
 
-function loginTrainer(){
+async function loginTrainer() {
   const pass = document.getElementById('trainer-pass').value;
-  if(pass !== TRAINERPASSWORDLOCAL){ banner('banner-trainer-login','Contraseña incorrecta','err'); return; }
+  if (!pass) { banner('banner-trainer-login', 'Introduce la contraseña', 'err'); return; }
+
+  banner('banner-trainer-login', 'Comprobando...', 'loading');
+  const data = await sheetsGet(new URLSearchParams({ action: 'loginTrainer', pass }));
+  hideBanner('banner-trainer-login');
+
+  if (!data.ok) { banner('banner-trainer-login', data.error || 'Contraseña incorrecta', 'err'); return; }
+
+  setAuthToken(data.token);
   document.getElementById('trainer-pass').value = '';
   cargarPanelEntrenador();
   goTo('s-trainer');
 }
-document.getElementById('trainer-pass')?.addEventListener('keydown', e=>{ if(e.key==='Enter') loginTrainer(); });
+document.getElementById('trainer-pass')?.addEventListener('keydown', e => { if (e.key === 'Enter') loginTrainer(); });
 
 async function cargarPanelEntrenador(){
   const cont = document.getElementById('trainer-clients-list');
