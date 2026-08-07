@@ -609,7 +609,13 @@ function fechaAhora(){
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 
-async function sheetsGet(params) {
+function toParams(input) {
+  if (input instanceof URLSearchParams) return input;
+  return new URLSearchParams(input || {});
+}
+
+async function sheetsGet(input) {
+  const params = toParams(input);
   if (!params.has('token') && getAuthToken()) params.set('token', getAuthToken());
   const url = `${SCRIPT_URL}?${params.toString()}`;
   const r = await fetch(url);
@@ -621,7 +627,9 @@ async function sheetsGet(params) {
   }
   return data;
 }
-async function sheetsPost(params) {
+
+async function sheetsPost(input) {
+  const params = toParams(input);
   if (!params.has('token') && getAuthToken()) params.set('token', getAuthToken());
   const url = `${SCRIPT_URL}?${params.toString()}`;
   const r = await fetch(url);
@@ -631,6 +639,8 @@ async function sheetsPost(params) {
     banner('banner-login', 'Tu sesión ha caducado, vuelve a entrar', 'err');
     goTo('s-login');
   }
+  return data;
+}
   return data;
 }
 
