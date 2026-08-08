@@ -159,7 +159,12 @@
     .wod-picker-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)}
     .wod-mini-note{font-size:11px;color:var(--text2);margin-top:6px}
     .wod-volume-row{display:grid;grid-template-columns:1.4fr .7fr .7fr;gap:8px;align-items:end;margin-top:8px}
-    .wod-volume-row input{min-width:0}
+.wod-volume-row input{min-width:0}
+.wod-volume-row-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end;margin-top:8px}
+.wod-added-list{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.wod-added-row{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 12px}
+.wod-added-row-hdr{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.wod-added-row-name{font-size:13px;font-weight:500;color:var(--text)}
   </style>
 </head>
 <body>
@@ -357,47 +362,77 @@
   </div>
 
   <!-- MODAL GENERADOR WOD -->
-  <div class="confirm-overlay" id="wod-overlay">
-    <div class="confirm-sheet" style="max-width:560px">
-      <h3>Generar WOD</h3>
-      <p>Elige formato, duración y los ejercicios que quieres incluir.</p>
-      <div style="margin-bottom:12px">
-        <label class="field-label" for="wod-format">Formato</label>
-        <select id="wod-format">
-          <option value="amrap">AMRAP</option>
-          <option value="emom">EMOM</option>
-          <option value="fortime">For Time</option>
-          <option value="chipper">Chipper</option>
-        </select>
-      </div>
-      <div style="margin-bottom:12px">
-        <label class="field-label" for="wod-duration">Duración</label>
-        <select id="wod-duration">
-          <option value="short">Corta 8-12 min</option>
-          <option value="medium" selected>Media 12-20 min</option>
-          <option value="long">Larga 20-30 min</option>
-        </select>
-      </div>
-      <div style="margin-bottom:12px">
-        <div class="field-label">Tipos de ejercicios</div>
-        <div style="display:grid;gap:8px;margin-top:6px">
-          <label><input type="checkbox" class="wod-cat" value="Multiarticular" checked onchange="renderWodExercisePicker()"> Multiarticular</label>
-          <label><input type="checkbox" class="wod-cat" value="Otros-básicos" checked onchange="renderWodExercisePicker()"> Otros-básicos</label>
-          <label><input type="checkbox" class="wod-cat" value="Gimnásticos" checked onchange="renderWodExercisePicker()"> Gimnásticos</label>
-          <label><input type="checkbox" class="wod-cat" value="Cardio" checked onchange="renderWodExercisePicker()"> Cardio</label>
-        </div>
-      </div>
-      <div style="margin-bottom:12px">
-        <div class="field-label">Ejercicios para el WOD</div>
-        <div id="wod-picker" class="wod-picker-grid"></div>
-        <div class="wod-mini-note">Selecciona manualmente los ejercicios que quieres incluir.</div>
-      </div>
-      <div class="btn-row" style="margin-top:12px">
-        <button class="btn btn-ghost btn-sm" onclick="closeWodOverlay()">Cancelar</button>
-        <button class="btn btn-primary btn-sm" onclick="generateWodFromModal()">Generar</button>
+<div class="confirm-overlay" id="wod-overlay">
+  <div class="confirm-sheet" style="max-width:560px;max-height:85vh;overflow-y:auto">
+    <h3>Generador de WOD</h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:10px" id="wod-format-desc"></p>
+
+    <div style="margin-bottom:12px">
+      <label class="field-label" for="wod-format">Formato</label>
+      <select id="wod-format" onchange="onWodFormatChange()">
+        <option value="amrap">AMRAP</option>
+        <option value="emom">EMOM</option>
+        <option value="fortime">For Time</option>
+        <option value="chipper">Chipper</option>
+        <option value="tabata">Tabata</option>
+        <option value="ladder">Escalera (ladder)</option>
+      </select>
+      <div class="wod-mini-note" id="wod-scoring-desc" style="margin-top:6px"></div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label class="field-label" id="wod-unit-label" for="wod-unit-val">Duración</label>
+      <input type="number" id="wod-unit-val" min="1" oninput="onWodUnitValChange(this.value)">
+    </div>
+
+    <div id="wod-rounds-row" style="margin-bottom:12px;display:none">
+      <label class="field-label" for="wod-rounds-val">Rondas estimadas (para calcular el volumen)</label>
+      <input type="number" id="wod-rounds-val" min="1" value="4" oninput="onWodRoundsChange(this.value)">
+    </div>
+
+    <div style="margin-bottom:12px">
+      <div class="field-label">Filtrar por tipo de ejercicio</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+        <label><input type="checkbox" class="wod-cat" value="Multiarticular" checked onchange="renderWodExercisePicker()"> Multiarticular</label>
+        <label><input type="checkbox" class="wod-cat" value="Otros-básicos" checked onchange="renderWodExercisePicker()"> Otros básicos</label>
+        <label><input type="checkbox" class="wod-cat" value="Gimnásticos" checked onchange="renderWodExercisePicker()"> Gimnásticos</label>
+        <label><input type="checkbox" class="wod-cat" value="Accesorio" onchange="renderWodExercisePicker()"> Accesorio</label>
+        <label><input type="checkbox" class="wod-cat" value="Cardio" checked onchange="renderWodExercisePicker()"> Cardio</label>
       </div>
     </div>
+
+    <div style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="field-label" style="margin-bottom:0">Elegir ejercicios</div>
+        <button class="btn btn-ghost btn-sm" style="width:auto" onclick="wodRandomize()">🎲 Aleatorio</button>
+      </div>
+      <div id="wod-picker" class="wod-picker-grid" style="margin-top:6px"></div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <div class="field-label">Ejercicios añadidos al WOD</div>
+      <div id="wod-added-list" class="wod-added-list"></div>
+    </div>
+
+    <div id="wod-preview-slot"></div>
+
+    <div style="margin-bottom:12px;margin-top:12px">
+      <label class="field-label" for="wod-template-select">Plantillas guardadas</label>
+      <select id="wod-template-select" onchange="wodLoadSelectedTemplate()"></select>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn btn-ghost btn-sm" onclick="wodSaveCurrentAsTemplate()">💾 Guardar como plantilla</button>
+        <button class="btn btn-ghost btn-sm" onclick="wodDeleteSelectedTemplate()">🗑️ Borrar plantilla</button>
+      </div>
+    </div>
+
+    <div class="status-banner" id="banner-wod"></div>
+
+    <div class="btn-row" style="margin-top:12px">
+      <button class="btn btn-ghost btn-sm" onclick="closeWodOverlay()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" style="flex:1" onclick="useWodInSession()">Usar en esta sesión</button>
+    </div>
   </div>
+</div>
 
   <!-- OVERLAY BORRAR -->
   <div class="confirm-overlay" id="delete-overlay">
@@ -411,7 +446,317 @@
     </div>
   </div>
 </div>
+// ===================== GENERADOR DE WOD v2 =====================
 
+const WOD_FORMATS = {
+  amrap:   { label:'AMRAP',    desc:'El máximo número de rondas posible en un tiempo fijo.',              unit:'minutos', defaultUnitVal:12, scoring:'Rondas + reps completadas' },
+  emom:    { label:'EMOM',     desc:'Un tramo de trabajo al empezar cada minuto.',                          unit:'minutos', defaultUnitVal:16, scoring:'Trabajo completado por minuto' },
+  fortime: { label:'For Time', desc:'Rondas fijas, el objetivo es acabarlas lo antes posible.',              unit:'rondas',  defaultUnitVal:4,  scoring:'Tiempo total' },
+  chipper: { label:'Chipper',  desc:'Lista única de ejercicios, sin repetir rondas.',                        unit:'rondas',  defaultUnitVal:1,  scoring:'Tiempo total' },
+  tabata:  { label:'Tabata',   desc:'20s de trabajo / 10s de descanso, típicamente 8 rondas por ejercicio.', unit:'rondas',  defaultUnitVal:8,  scoring:'Reps totales' },
+  ladder:  { label:'Escalera', desc:'Reps ascendentes o descendentes cada ronda.',                          unit:'rondas',  defaultUnitVal:5,  scoring:'Tiempo total o rondas completas' }
+};
+
+const WOD_DEFAULT_REPS = { 'Multiarticular':10, 'Otros-básicos':15, 'Gimnásticos':8, 'Accesorio':12 };
+
+let wodState = null;
+
+function wodDefaultState(){
+  return { format:'amrap', unitVal: WOD_FORMATS.amrap.defaultUnitVal, rounds:4, items: [] };
+}
+
+function openWodOverlay(){
+  wodState = wodState || wodDefaultState();
+  document.getElementById('wod-format').value = wodState.format;
+  document.getElementById('wod-overlay').classList.add('open');
+  renderWodFormatUI();
+  renderWodExercisePicker();
+  renderWodAddedList();
+  renderWodTemplatesSelect();
+  renderWodPreview();
+}
+
+function closeWodOverlay(){
+  document.getElementById('wod-overlay').classList.remove('open');
+}
+
+function onWodFormatChange(){
+  const format = document.getElementById('wod-format').value;
+  wodState.format = format;
+  wodState.unitVal = WOD_FORMATS[format].defaultUnitVal;
+  renderWodFormatUI();
+  renderWodPreview();
+}
+
+function renderWodFormatUI(){
+  const fmt = WOD_FORMATS[wodState.format];
+  document.getElementById('wod-unit-label').textContent = fmt.unit === 'minutos' ? 'Duración (minutos)' : 'Número de rondas';
+  document.getElementById('wod-unit-val').value = wodState.unitVal;
+  document.getElementById('wod-format-desc').textContent = fmt.desc;
+  document.getElementById('wod-scoring-desc').textContent = 'Cómo se puntúa: ' + fmt.scoring;
+  document.getElementById('wod-rounds-row').style.display = (fmt.unit === 'minutos') ? 'block' : 'none';
+  document.getElementById('wod-rounds-val').value = wodState.rounds;
+}
+
+function onWodUnitValChange(v){
+  wodState.unitVal = Math.max(1, parseInt(v) || 1);
+  renderWodPreview();
+}
+function onWodRoundsChange(v){
+  wodState.rounds = Math.max(1, parseInt(v) || 1);
+  renderWodPreview();
+}
+
+function wodEffectiveRounds(){
+  const fmt = WOD_FORMATS[wodState.format];
+  return fmt.unit === 'minutos' ? wodState.rounds : wodState.unitVal;
+}
+
+function getCheckedWodCats(){
+  return [...document.querySelectorAll('.wod-cat:checked')].map(i => i.value);
+}
+
+function getAvailableWodExercises(){
+  const cats = getCheckedWodCats();
+  const addedIds = new Set(wodState.items.map(it => it.id));
+  return EXERCISES.filter(e => e.cat !== 'Calentamiento' && e.cat !== 'Estiramientos' && cats.includes(e.cat) && !addedIds.has(e.id));
+}
+
+function renderWodExercisePicker(){
+  const box = document.getElementById('wod-picker');
+  if (!box) return;
+  const exs = getAvailableWodExercises();
+  box.innerHTML = exs.length
+    ? exs.map(ex => `<button type="button" class="wod-picker-item" style="text-align:left;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;cursor:pointer;font-size:13px;color:var(--text);width:100%" onclick="wodAddExercise('${ex.id}')">+ ${ex.nombre}</button>`).join('')
+    : '<p style="font-size:12px;color:var(--text2)">No hay más ejercicios en las categorías elegidas.</p>';
+}
+
+function wodAddExercise(id){
+  const ex = EXERCISES.find(e => e.id === id);
+  if (!ex || wodState.items.some(it => it.id === id)) return;
+  const isCardio = !!CARDIO_FIELDS[ex.id];
+  const item = { id: ex.id, nombre: ex.nombre, cat: ex.cat, isCardio };
+  if (isCardio) {
+    item.distancia = 200;
+    item.calorias = 10;
+    item.tiempomin = 1;
+    item.tiemposeg = 0;
+  } else {
+    item.reps = WOD_DEFAULT_REPS[ex.cat] || 10;
+    item.peso = 0;
+  }
+  wodState.items.push(item);
+  renderWodExercisePicker();
+  renderWodAddedList();
+  renderWodPreview();
+}
+
+function wodAddExerciseSilent(id){
+  const ex = EXERCISES.find(e => e.id === id);
+  if (!ex) return;
+  const isCardio = !!CARDIO_FIELDS[ex.id];
+  const item = { id: ex.id, nombre: ex.nombre, cat: ex.cat, isCardio };
+  if (isCardio) { item.distancia = 200; item.calorias = 10; item.tiempomin = 1; item.tiemposeg = 0; }
+  else { item.reps = WOD_DEFAULT_REPS[ex.cat] || 10; item.peso = 0; }
+  wodState.items.push(item);
+}
+
+function wodRemoveExercise(id){
+  wodState.items = wodState.items.filter(it => it.id !== id);
+  renderWodExercisePicker();
+  renderWodAddedList();
+  renderWodPreview();
+}
+
+function wodMoveItem(id, dir){
+  const idx = wodState.items.findIndex(it => it.id === id);
+  if (idx < 0) return;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= wodState.items.length) return;
+  const tmp = wodState.items[idx];
+  wodState.items[idx] = wodState.items[newIdx];
+  wodState.items[newIdx] = tmp;
+  renderWodAddedList();
+}
+
+function wodUpdateItemField(id, field, value){
+  const it = wodState.items.find(i => i.id === id);
+  if (!it) return;
+  it[field] = parseFloat(value) || 0;
+  renderWodPreview();
+}
+
+function renderWodAddedList(){
+  const box = document.getElementById('wod-added-list');
+  if (!box) return;
+  if (!wodState.items.length) {
+    box.innerHTML = '<p style="font-size:12px;color:var(--text2)">Aún no has añadido ejercicios. Elígelos de la lista de arriba.</p>';
+    return;
+  }
+  box.innerHTML = wodState.items.map((it, i) => {
+    const moveButtons = `
+      <button class="btn-del-set" style="width:auto;padding:0 8px" onclick="wodMoveItem('${it.id}',-1)" ${i === 0 ? 'disabled' : ''} title="Subir">↑</button>
+      <button class="btn-del-set" style="width:auto;padding:0 8px" onclick="wodMoveItem('${it.id}',1)" ${i === wodState.items.length - 1 ? 'disabled' : ''} title="Bajar">↓</button>
+      <button class="btn-del-set" onclick="wodRemoveExercise('${it.id}')" title="Quitar">×</button>
+    `;
+    if (it.isCardio) {
+      return `<div class="wod-added-row">
+        <div class="wod-added-row-hdr"><span class="wod-added-row-name">${it.nombre}</span><div style="display:flex;gap:4px">${moveButtons}</div></div>
+        <div class="wod-volume-row">
+          <div><label class="field-label">Distancia (m)</label><input type="number" min="0" value="${it.distancia || 0}" oninput="wodUpdateItemField('${it.id}','distancia',this.value)"></div>
+          <div><label class="field-label">Calorías</label><input type="number" min="0" value="${it.calorias || 0}" oninput="wodUpdateItemField('${it.id}','calorias',this.value)"></div>
+          <div><label class="field-label">Tiempo (min)</label><input type="number" min="0" step="0.5" value="${it.tiempomin || 0}" oninput="wodUpdateItemField('${it.id}','tiempomin',this.value)"></div>
+        </div>
+      </div>`;
+    }
+    return `<div class="wod-added-row">
+      <div class="wod-added-row-hdr"><span class="wod-added-row-name">${it.nombre}</span><div style="display:flex;gap:4px">${moveButtons}</div></div>
+      <div class="wod-volume-row-2">
+        <div><label class="field-label">Reps/ronda</label><input type="number" min="0" value="${it.reps || 0}" oninput="wodUpdateItemField('${it.id}','reps',this.value)"></div>
+        <div><label class="field-label">Peso (kg)</label><input type="number" min="0" step="0.5" value="${it.peso || 0}" oninput="wodUpdateItemField('${it.id}','peso',this.value)"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function wodRandomize(){
+  const checked = getCheckedWodCats();
+  const cats = checked.length ? checked : ['Multiarticular', 'Otros-básicos', 'Gimnásticos', 'Cardio'];
+  const pool = EXERCISES.filter(e => e.cat !== 'Calentamiento' && e.cat !== 'Estiramientos' && cats.includes(e.cat));
+  const targetCount = { amrap:4, emom:4, fortime:5, chipper:7, tabata:2, ladder:3 }[wodState.format] || 4;
+  const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, targetCount);
+  wodState.items = [];
+  shuffled.forEach(ex => wodAddExerciseSilent(ex.id));
+  renderWodExercisePicker();
+  renderWodAddedList();
+  renderWodPreview();
+}
+
+function wodCalcVolumen(){
+  const rounds = wodEffectiveRounds();
+  return wodState.items.reduce((tot, it) => {
+    if (it.isCardio) return tot;
+    return tot + (parseFloat(it.peso) || 0) * rounds * (parseFloat(it.reps) || 0);
+  }, 0);
+}
+
+function wodBuildTitle(){
+  const fmt = WOD_FORMATS[wodState.format];
+  const rounds = wodEffectiveRounds();
+  return fmt.unit === 'minutos' ? `${fmt.label} ${wodState.unitVal} min` : `${fmt.label} ${rounds} rondas`;
+}
+
+function renderWodPreview(){
+  const slot = document.getElementById('wod-preview-slot');
+  if (!slot) return;
+  if (!wodState.items.length) { slot.innerHTML = ''; return; }
+  const rounds = wodEffectiveRounds();
+  const vol = wodCalcVolumen();
+  const lines = wodState.items.map(it => {
+    if (it.isCardio) {
+      const parts = [];
+      if (it.distancia) parts.push(`${it.distancia} m`);
+      if (it.calorias) parts.push(`${it.calorias} cal`);
+      if (it.tiempomin) parts.push(`${it.tiempomin} min`);
+      return `${it.nombre}: ${parts.join(' / ')}`;
+    }
+    return `${it.reps} ${it.nombre}${it.peso ? ` @ ${it.peso}kg` : ''}`;
+  });
+  slot.innerHTML = `
+    <div class="wod-preview-box">
+      <div class="wod-preview-title">${wodBuildTitle()}</div>
+      <div class="wod-preview-meta">${wodState.items.length} ejercicios · ${rounds} ronda${rounds === 1 ? '' : 's'} · Vol. estimado: ${Math.round(vol).toLocaleString('es-ES')} kg</div>
+      ${lines.map(l => `<div class="wod-preview-line">${l}</div>`).join('')}
+    </div>
+  `;
+}
+
+// ---- Plantillas guardadas (localStorage) ----
+
+const WOD_TEMPLATES_KEY = 'wod_templates_v1';
+
+function wodLoadTemplates(){
+  try { return JSON.parse(localStorage.getItem(WOD_TEMPLATES_KEY)) || []; } catch (e) { return []; }
+}
+function wodSaveTemplates(list){
+  try { localStorage.setItem(WOD_TEMPLATES_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function renderWodTemplatesSelect(){
+  const sel = document.getElementById('wod-template-select');
+  if (!sel) return;
+  const templates = wodLoadTemplates();
+  sel.innerHTML = '<option value="">— Cargar plantilla guardada —</option>' + templates.map((t, i) => `<option value="${i}">${t.name}</option>`).join('');
+}
+function wodSaveCurrentAsTemplate(){
+  if (!wodState.items.length) { banner('banner-wod', 'Añade ejercicios antes de guardar', 'err'); return; }
+  const name = prompt('Nombre para esta plantilla de WOD:');
+  if (!name) return;
+  const templates = wodLoadTemplates();
+  templates.push({ name, state: JSON.parse(JSON.stringify(wodState)) });
+  wodSaveTemplates(templates);
+  renderWodTemplatesSelect();
+  banner('banner-wod', 'Plantilla guardada', 'ok');
+}
+function wodLoadSelectedTemplate(){
+  const sel = document.getElementById('wod-template-select');
+  const idx = sel.value;
+  if (idx === '') return;
+  const templates = wodLoadTemplates();
+  const t = templates[parseInt(idx)];
+  if (!t) return;
+  wodState = JSON.parse(JSON.stringify(t.state));
+  document.getElementById('wod-format').value = wodState.format;
+  renderWodFormatUI();
+  renderWodExercisePicker();
+  renderWodAddedList();
+  renderWodPreview();
+}
+function wodDeleteSelectedTemplate(){
+  const sel = document.getElementById('wod-template-select');
+  const idx = sel.value;
+  if (idx === '') return;
+  const templates = wodLoadTemplates();
+  templates.splice(parseInt(idx), 1);
+  wodSaveTemplates(templates);
+  renderWodTemplatesSelect();
+}
+
+// ---- Integración con la sesión: aquí se suma el volumen ----
+
+function useWodInSession(){
+  if (!wodState.items.length) { banner('banner-wod', 'Añade al menos un ejercicio', 'err'); return; }
+  const rounds = wodEffectiveRounds();
+
+  selected.clear();
+  exSets = {};
+  warmupDone = {};
+
+  wodState.items.forEach(it => {
+    selected.add(it.id);
+    if (it.isCardio) {
+      exSets[it.id] = [{
+        distancia: (parseFloat(it.distancia) || 0) * rounds || '',
+        calorias: (parseFloat(it.calorias) || 0) * rounds || '',
+        tiempomin: it.tiempomin ? (parseFloat(it.tiempomin) || 0) * rounds : '',
+        tiemposeg: 0
+      }];
+    } else {
+      exSets[it.id] = [{ peso: parseFloat(it.peso) || 0, series: rounds, reps: parseFloat(it.reps) || 0 }];
+    }
+  });
+
+  renderChips();
+  renderEntries();
+
+  const obsEl = document.getElementById('obs-general');
+  const wodNote = `🏋️ WOD: ${wodBuildTitle()} (${wodState.items.length} ejercicios)`;
+  if (obsEl) obsEl.value = obsEl.value ? `${wodNote}\n${obsEl.value}` : wodNote;
+
+  document.getElementById('paso-1').style.display = 'none';
+  document.getElementById('paso-2').style.display = 'block';
+  window.scrollTo(0, 0);
+  closeWodOverlay();
+}
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzZOhpl-vMYcoewS1B_YL5LiUlUEH9lQP2utH6huSHp1HNDZpsXL-UHAnWRWTVR3ngEBw/exec';
 // TRAINER_PASSWORD_LOCAL eliminada: ahora la contraseña se valida
@@ -1555,66 +1900,6 @@ function showTabExportar(){ showTab('exportar'); }
 function closeWodOverlay(){ document.getElementById('wod-overlay').classList.remove('open'); }
 function openWodOverlay(){ document.getElementById('wod-overlay').classList.add('open'); renderWodExercisePicker(); }
 
-function getCheckedWodCats(){ return [...document.querySelectorAll('.wod-cat:checked')].map(i=>i.value); }
-function getAvailableWodExercises(){ const cats = getCheckedWodCats(); return EXERCISES.filter(e=>cats.includes(e.cat)); }
-function renderWodExercisePicker(){
-  const box = document.getElementById('wod-picker');
-  if(!box) return;
-  const exs = getAvailableWodExercises();
-  box.innerHTML = exs.map(ex=>`<label class="wod-picker-item"><input type="checkbox" class="wod-ex-item" value="${ex.id}" checked> <span>${ex.nombre}</span></label>`).join('');
-}
-function getCheckedWodExerciseIds(){ return [...document.querySelectorAll('.wod-ex-item:checked')].map(i=>i.value); }
-
-function buildWod(format,duration,exerciseIds){
-  const chosen = EXERCISES.filter(e=>exerciseIds.includes(e.id));
-  if(chosen.length < 2) return {title:'Selecciona más ejercicios',meta:'Mínimo 2 ejercicios',lines:['Debes elegir al menos 2 ejercicios para crear el WOD.'],selectedIds:[]};
-  const titleBase =
-    format==='amrap' ? `AMRAP ${duration==='short'?10:duration==='long'?20:15}` :
-    format==='emom' ? `EMOM ${duration==='short'?12:duration==='long'?20:16}` :
-    format==='fortime' ? `For Time ${duration==='short'?3:duration==='long'?5:4}` :
-    'Chipper';
-  let lines = [];
-  if(format==='amrap') lines = chosen.slice(0,3).map((e,i)=>`${[12,10,8][i]||8} ${e.nombre}`);
-  else if(format==='emom') lines = chosen.slice(0,4).map((e,i)=>`Min ${i+1}: ${[12,10,14,16][i]||10} ${e.nombre}`);
-  else if(format==='fortime') lines = chosen.slice(0,4).map((e,i)=>`${[15,12,10,200][i]||10} ${e.nombre}`);
-  else lines = chosen.slice(0,5).map((e,i)=>`${[50,40,30,20,15][i]||15} ${e.nombre}`);
-  return {title:titleBase, meta:`${chosen.length} ejercicios elegidos`, lines, selectedIds:chosen.map(e=>e.id)};
-}
-
-function renderWodPreview(wod){
-  const slot = document.getElementById('wod-preview-slot');
-  if(!slot) return;
-  slot.innerHTML = `<div class="wod-preview-box"><div class="wod-preview-title">${wod.title}</div><div class="wod-preview-meta">${wod.meta}</div>${wod.lines.map(l=>`<div class="wod-preview-line">${l}</div>`).join('')}<div class="btn-row" style="margin-top:10px"><button class="btn btn-sm btn-ghost" onclick="selectGeneratedWod()">Seleccionar ejercicios</button></div></div>`;
-  window.lastGeneratedWod = wod;
-}
-
-function selectGeneratedWod(){
-  const wod = window.lastGeneratedWod;
-  if(!wod || !Array.isArray(wod.selectedIds) || !wod.selectedIds.length) return;
-  if(!Array.isArray(wodGenerated)) wodGenerated = [];
-  selected.clear();
-  wod.selectedIds.forEach(id=>selected.add(id));
-  renderChips();
-  closeWodOverlay();
-}
-
-function generateWodFromModal(){
-  const format = document.getElementById('wod-format').value;
-  const duration = document.getElementById('wod-duration').value;
-  const ids = getCheckedWodExerciseIds();
-  const wod = buildWod(format,duration,ids);
-  renderWodPreview(wod);
-  closeWodOverlay();
-}
-
-function toggleWarmupBtn(id){ toggleWarmup(id); }
-function nextExerciseBtn(id){ nextExercise(id); }
-
-function updateWodEntry(idx,field,value){
-  if(!Array.isArray(wodGenerated) || !wodGenerated[0] || !wodGenerated[0].entries || !wodGenerated[0].entries[idx]) return;
-  wodGenerated[0].entries[idx][field] = value;
-  renderWodDataInputs();
-}
 </script>
 </body>
 </html>
