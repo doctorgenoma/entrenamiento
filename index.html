@@ -293,6 +293,11 @@
         </div>
         <p style="font-size:13px;color:var(--text2);margin-bottom:1rem">Toca los que has hecho en esta sesión.</p>
         <div id="chips-container"></div>
+        <div class="wod-generator-card">
+  <h3>🏋️ Generador de WOD</h3>
+  <p>Crea un WOD personalizado y añádelo directamente a tu sesión de hoy.</p>
+  <button class="btn btn-primary btn-sm" onclick="openWodOverlay()">Generar WOD</button>
+</div>
         <div class="btn-row">
           <button class="btn btn-sm" onclick="selectAll()">Todos</button>
           <button class="btn btn-sm btn-ghost" onclick="clearAll()">Limpiar</button>
@@ -1486,7 +1491,16 @@ function calcularRacha(sesiones){
 
   return {semanas, sesionesEstaSem};
 }
-
+function actualizarRacha(){
+  const cached = cacheGet('hist_' + clientName);
+  if (cached) { updateRachaDisplay(cached); return; }
+  sheetsGet(new URLSearchParams({ action: 'historial', cliente: clientName })).then(data => {
+    if (data.ok) {
+      cacheSet('hist_' + clientName, data.sesiones);
+      updateRachaDisplay(data.sesiones);
+    }
+  }).catch(() => {});
+}
 function updateRachaDisplay(sesiones){
   const badge = document.getElementById('racha-badge');
   if(!badge) return;
